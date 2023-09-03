@@ -63,29 +63,33 @@ fn configure_routes(config: &mut web::ServiceConfig) {
 }
 
 async fn handle_default_service(req: HttpRequest, state: Data<AppState>) -> impl Responder {
-    // println!("{:#?}", req);
-    println!("{}", req.path());
-    println!("{:#?}", state.cache);
     let mut path = req.path();
     if path.starts_with('/') {
         path = &path[1..];
     }
-    match &state.cache.get(path) {
-        Some(response) => {
-            let response = &(*response).clone();
-            HttpResponse::Ok().body(response.clone())
+    match &state.file_map.get(path) {
+        Some(file_name) => {
+            if let Ok(file) = File::open(file_name) {
+                if let Ok(result) = read_json_file(file) {
+                    //let url = result.url.clone();
+                    //let method = result.method.unwrap_or("GET".to_owned());
+                    let code = result.code.unwrap_or(200) as u16;
+                    let response = serde_json::to_string(&result.response).unwrap();
+
+                    return HttpResponse::build(StatusCode::from_u16(code).unwrap()).body(response);
+
+                    // return HttpResponse::Ok().body(response);
+                }
+            }
         }
-        None => HttpResponse::NotFound().body(format!("response for path: '{}' not found", path)),
+        None => {}
     }
+    HttpResponse::NotFound().body(format!("response for path: '{}' not found", path))
 }
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    let app_data = Data::new(AppState {
-        cache: create_file_map(),
-    });
-
-    println!("{:#?}", app_data.cache);
+    let app_data = Data::new(AppState::new(create_file_map()));
 
     HttpServer::new(move || {
         App::new()
@@ -130,8 +134,9 @@ fn create_file_map() -> HashMap<String, String> {
                 Ok(result) => {
                     let url = result.url.clone();
                     let path = path.file_name().unwrap().to_str().unwrap().to_string();
-                    let response = serde_json::to_string(&result.response).unwrap();
-                    map.insert(url, response);
+
+                    // let response = serde_json::to_string(&result.response).unwrap();
+                    map.insert(url, path);
                 }
                 Err(err) => println!("{}", err),
             }
@@ -151,11 +156,11 @@ struct Request {
 }
 
 struct AppState {
-    cache: HashMap<String, String>,
+    file_map: HashMap<String, String>,
 }
 
 impl AppState {
-    fn new(cache: HashMap<String, String>) -> Self {
-        Self { cache }
+    fn new(file_map: HashMap<String, String>) -> Self {
+        Self { file_map }
     }
 }
