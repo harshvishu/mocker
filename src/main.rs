@@ -1,33 +1,33 @@
+use actix_web::http::header::ContentType;
 use actix_web::middleware::{Compress, Logger, NormalizePath};
 use actix_web::web::Data;
-use actix_web::{Error, HttpRequest};
+use actix_web::HttpRequest;
 use serde::Deserialize;
-use serde_json::{json, Value};
+use serde_json::{Map, Value};
 use std::collections::HashMap;
 use std::fs::File;
 use std::fs::{self};
-use std::io::{self, BufReader};
-use std::ops::Deref;
+use std::io::BufReader;
 use std::path::PathBuf;
-use std::sync::{Arc, Mutex};
 
-use actix_web::{
-    get,
-    http::{header::ContentType, StatusCode},
-    post, web, App, HttpResponse, HttpServer, Responder,
-};
+use actix_web::{http::StatusCode, web, App, HttpResponse, HttpServer, Responder};
 
+/*
 #[get("/")]
 async fn hello() -> impl Responder {
     HttpResponse::Ok().body("Hello world!")
 }
+*/
 
+/*
 async fn get_http_response(req: HttpRequest) -> impl Responder {
     println!("{:#?}", req);
     println!("{}", req.path());
     HttpResponse::Ok().body("response")
 }
+*/
 
+/*
 fn configure_routes(config: &mut web::ServiceConfig) {
     let mut routes = Vec::new();
 
@@ -61,8 +61,9 @@ fn configure_routes(config: &mut web::ServiceConfig) {
         config.service(web::resource(url).route(route));
     }
 }
+*/
 
-async fn handle_default_service(req: HttpRequest, state: Data<AppState>) -> impl Responder {
+async fn handle_any_request(req: HttpRequest, state: Data<AppState>) -> impl Responder {
     let mut path = req.path();
     if path.starts_with('/') {
         path = &path[1..];
@@ -73,12 +74,15 @@ async fn handle_default_service(req: HttpRequest, state: Data<AppState>) -> impl
                 if let Ok(result) = read_json_file(file) {
                     //let url = result.url.clone();
                     //let method = result.method.unwrap_or("GET".to_owned());
-                    let code = result.code.unwrap_or(200) as u16;
-                    let response = serde_json::to_string(&result.response).unwrap();
-
-                    return HttpResponse::build(StatusCode::from_u16(code).unwrap()).body(response);
-
-                    // return HttpResponse::Ok().body(response);
+                    let code = StatusCode::from_u16(result.code.unwrap_or(200) as u16).unwrap();
+                    let content_type = result
+                        .content_type
+                        .unwrap_or(ContentType::json().to_string());
+                    if let Ok(response) = serde_json::to_string(&result.response) {
+                        return HttpResponse::build(code)
+                            .content_type(content_type)
+                            .body(response);
+                    }
                 }
             }
         }
@@ -97,9 +101,7 @@ async fn main() -> std::io::Result<()> {
             .wrap(Logger::default())
             .wrap(NormalizePath::default())
             .app_data(app_data.clone())
-            .service(hello)
-            .default_service(web::to(handle_default_service))
-        //.configure(configure_routes)
+            .default_service(web::to(handle_any_request))
     })
     .bind(("127.0.0.1", 8080))?
     .run()
@@ -150,9 +152,9 @@ struct Request {
     name: Option<String>,
     url: String,
     response: Value,
-    method: Option<String>,
     code: Option<i32>,
     content_type: Option<String>,
+    headers: Option<HashMap<String, String>>,
 }
 
 struct AppState {
