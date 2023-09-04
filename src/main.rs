@@ -1,3 +1,4 @@
+use actix_web::guard::Header;
 use actix_web::http::header::ContentType;
 use actix_web::middleware::{Compress, Logger, NormalizePath};
 use actix_web::web::Data;
@@ -63,37 +64,11 @@ fn configure_routes(config: &mut web::ServiceConfig) {
 }
 */
 
-async fn handle_any_request(req: HttpRequest, state: Data<AppState>) -> impl Responder {
-    let mut path = req.path();
-    if path.starts_with('/') {
-        path = &path[1..];
-    }
-    match &state.file_map.get(path) {
-        Some(file_name) => {
-            if let Ok(file) = File::open(file_name) {
-                if let Ok(result) = read_json_file(file) {
-                    //let url = result.url.clone();
-                    //let method = result.method.unwrap_or("GET".to_owned());
-                    let code = StatusCode::from_u16(result.code.unwrap_or(200) as u16).unwrap();
-                    let content_type = result
-                        .content_type
-                        .unwrap_or(ContentType::json().to_string());
-                    if let Ok(response) = serde_json::to_string(&result.response) {
-                        return HttpResponse::build(code)
-                            .content_type(content_type)
-                            .body(response);
-                    }
-                }
-            }
-        }
-        None => {}
-    }
-    HttpResponse::NotFound().body(format!("response for path: '{}' not found", path))
-}
-
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     let app_data = Data::new(AppState::new(create_file_map()));
+
+    println!("{:#?}", app_data.file_map);
 
     HttpServer::new(move || {
         App::new()
@@ -106,6 +81,54 @@ async fn main() -> std::io::Result<()> {
     .bind(("127.0.0.1", 8080))?
     .run()
     .await
+}
+
+async fn handle_any_request(req: HttpRequest, state: Data<AppState>) -> impl Responder {
+    println!("...Request Received...");
+    println!("{:#?}", req);
+
+    let mut path = req.path();
+    if path.starts_with('/') {
+        path = &path[1..];
+    }
+    match &state.file_map.get(path) {
+        Some(file_name) => {
+            if let Ok(file) = File::open(file_name) {
+                if let Ok(result) = read_json_file(file) {
+                    println!("Processing request for: {:?}", result.name);
+                    //let url = result.url.clone();
+                    //let method = result.method.unwrap_or("GET".to_owned());
+                    let code = StatusCode::from_u16(result.code.unwrap_or(200) as u16).unwrap();
+                    let content_type = result
+                        .content_type
+                        .unwrap_or(ContentType::json().to_string());
+                    let headers = result.headers.unwrap_or(HashMap::new());
+                    if let Ok(body) = serde_json::to_string(&result.response) {
+                        // Start with StatusCode
+                        let mut http_response = HttpResponse::build(code);
+                        // Set ContentType
+                        http_response.content_type(content_type);
+                        // Insert Headers
+                        for header in headers {
+                            http_response.insert_header(header);
+                        }
+                        // Insert Body
+                        return http_response.body(body);
+                    } else {
+                        println!("Unable to convert response to json");
+                    }
+                } else {
+                    println!("Unable to read file {}", file_name);
+                }
+            } else {
+                println!("Unable to open file {}", file_name);
+            }
+        }
+        None => {
+            println!("Unable find key '{}' in file_map", path);
+        }
+    }
+    HttpResponse::NotFound().body(format!("response for path: '{}' not found", path))
 }
 
 fn read_json_file(file: File) -> Result<Request, Box<dyn std::error::Error>> {
