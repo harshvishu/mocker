@@ -40,22 +40,27 @@ pub async fn handle_any_request(req: HttpRequest, state: Data<AppState>) -> impl
                             http_response.insert_header(header);
                         }
                         // Insert Body
-                        return http_response.body(body);
+                        http_response.body(body)
                     } else {
-                        println!("Unable to convert response to json");
+                        HttpResponse::NotImplemented()
+                            .body(format!("Unable to parse respons for path: '{}'", path))
                     }
                 } else {
-                    println!("Unable to read file {}", file_name);
+                    HttpResponse::InternalServerError().body(format!(
+                        "Unable to read file {}, for path: '{}'",
+                        file_name, path
+                    ))
                 }
             } else {
-                println!("Unable to open file {}", file_name);
+                HttpResponse::InternalServerError().body(format!(
+                    "Unable to open file for read {}, for path: '{}'",
+                    file_name, path
+                ))
             }
         }
-        None => {
-            println!("Unable find key '{}' in file_map", path);
-        }
+        None => HttpResponse::NotImplemented()
+            .body(format!("Unable to find route for path: '{}'", path)),
     }
-    HttpResponse::NotFound().body(format!("response for path: '{}' not found", path))
 }
 
 pub fn read_json_file(file: File) -> Result<Request, Box<dyn std::error::Error>> {
