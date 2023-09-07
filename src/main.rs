@@ -13,12 +13,13 @@ async fn main() -> std::io::Result<()> {
     let cli = Cli::parse();
 
     let port = cli.port;
-    run_http(port).await
+    let search_path = cli.search_path;
+    run_http(port, Some(search_path)).await
 }
 
-async fn run_http(port: u16) -> std::io::Result<()> {
+async fn run_http(port: u16, search_path: Option<String>) -> std::io::Result<()> {
     let app_data = Data::new(utils::AppState::new(
-        utils::create_request_map(),
+        utils::create_request_map(search_path),
         Some(port),
     ));
 

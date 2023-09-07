@@ -10,6 +10,11 @@ pub struct Cli {
     #[arg(short, long, default_value_t = 8080, value_name = "PORT", value_parser=clap::value_parser!(u16).range(1024..65535))]
     pub port: u16,
 
+    /// Path to look for configuration files. Default it will look for files in the current
+    /// directory
+    #[arg(short, long, default_value_t = String::from("./"), value_name = "SEARCH_PATH")]
+    pub search_path: String,
+
     /// Turn debugging information on
     #[arg(short, long, action = clap::ArgAction::Count)]
     pub debug: u8,

@@ -42,7 +42,7 @@ pub async fn handle_any_request(req: HttpRequest, state: Data<AppState>) -> impl
                                 }
 
                                 if let Some(duration) = result.delay {
-                                    sleep(Duration::from_secs(duration));
+                                    sleep(Duration::from_secs(duration)).await;
                                 }
 
                                 // Insert Body
@@ -79,10 +79,11 @@ pub fn read_json_file(file: File) -> Result<Request, Box<dyn std::error::Error>>
     Ok(request)
 }
 
-pub fn create_request_map() -> HashMap<String, RequestHandlingConfig> {
+pub fn create_request_map(search_path: Option<String>) -> HashMap<String, RequestHandlingConfig> {
+    let search_path = search_path.unwrap_or(String::from("./"));
     let mut map = HashMap::new();
 
-    let paths: Vec<PathBuf> = fs::read_dir("./")
+    let paths: Vec<PathBuf> = fs::read_dir(search_path)
         .unwrap()
         .filter_map(|dir| dir.ok())
         .map(|dir_entry| dir_entry.path())
@@ -107,7 +108,7 @@ pub fn create_request_map() -> HashMap<String, RequestHandlingConfig> {
                     // let response = serde_json::to_string(&result.response).unwrap();
                     map.insert(url, config);
                 }
-                Err(err) => println!("{}", err),
+                Err(err) => println!("Error reading JSON file: {}", err),
             }
         }
     }
