@@ -1,29 +1,41 @@
-use actix_web::middleware::{Compress, Logger, NormalizePath};
+use actix_web::middleware::{Compress, NormalizePath};
 use actix_web::web::Data;
 
 use actix_web::{web, App, HttpServer};
-mod reader;
+mod cli;
 mod utils;
+
+use clap::Parser;
+use cli::Cli;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    run_http().await
+    let cli = Cli::parse();
+
+    let port = cli.port;
+    run_http(port).await
 }
 
-async fn run_http() -> std::io::Result<()> {
-    let app_data = Data::new(utils::AppState::new(utils::create_file_map()));
+async fn run_http(port: u16) -> std::io::Result<()> {
+    let app_data = Data::new(utils::AppState::new(
+        utils::create_request_map(),
+        Some(port),
+    ));
 
-    println!("configured routes:\n {:#?}", app_data.file_map);
+    println!("configured routes:\n {:#?}", app_data.config_map);
+
+    // access logs are printed with the INFO level so ensure it is enabled by default
+    env_logger::init_from_env(env_logger::Env::new().default_filter_or("info"));
 
     HttpServer::new(move || {
         App::new()
             .wrap(Compress::default())
-            .wrap(Logger::default())
-            .wrap(NormalizePath::default())
+            .wrap(utils::get_logger())
+            .wrap(NormalizePath::trim())
             .app_data(app_data.clone())
             .default_service(web::to(utils::handle_any_request))
     })
-    .bind(("127.0.0.1", 8080))?
+    .bind(("127.0.0.1", port))?
     .run()
     .await
 }
