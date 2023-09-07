@@ -1,3 +1,4 @@
+use crate::file_reader::read_json_file;
 use actix_web::middleware::Logger;
 use actix_web::rt::time::sleep;
 use actix_web::{http::header::ContentType, web::Data, HttpRequest};
@@ -8,7 +9,6 @@ use std::time::Duration;
 use std::{collections::HashMap, fs::File};
 use std::{
     fs::{self},
-    io::BufReader,
     path::PathBuf,
 };
 
@@ -71,12 +71,6 @@ pub async fn handle_any_request(req: HttpRequest, state: Data<AppState>) -> impl
         None => HttpResponse::NotImplemented()
             .body(format!("Unable to find route for path: '{}'", path)),
     }
-}
-
-pub fn read_json_file(file: File) -> Result<Request, Box<dyn std::error::Error>> {
-    let reader = BufReader::new(file);
-    let request = serde_json::from_reader(reader)?;
-    Ok(request)
 }
 
 pub fn create_request_map(search_path: Option<String>) -> HashMap<String, RequestHandlingConfig> {
