@@ -20,7 +20,7 @@ async fn main() -> std::io::Result<()> {
 
 async fn run_http(port: u16, search_path: Option<String>) -> std::io::Result<()> {
     let app_data = Data::new(utils::AppState::new(
-        utils::create_request_map(search_path),
+        utils::create_request_map(search_path.clone()),
         Some(port),
     ));
 
@@ -35,7 +35,8 @@ async fn run_http(port: u16, search_path: Option<String>) -> std::io::Result<()>
             .wrap(utils::get_logger())
             .wrap(NormalizePath::trim())
             .app_data(app_data.clone())
-            .default_service(web::to(utils::handle_any_request))
+            .configure(|config| utils::configure_routes(search_path.clone(), config))
+        //.default_service(web::to(utils::handle_any_request))
     })
     .bind(("127.0.0.1", port))?
     .run()
