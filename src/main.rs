@@ -1,13 +1,16 @@
 use actix_web::middleware::{Compress, NormalizePath};
 use actix_web::web::Data;
-
 use actix_web::{web, App, HttpServer};
-mod cli;
-mod file_reader;
-mod utils;
-
 use clap::Parser;
 use cli::Cli;
+
+use crate::app_state::AppState;
+
+mod app_state;
+mod cli;
+mod file_reader;
+mod rex;
+mod utils;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -19,7 +22,7 @@ async fn main() -> std::io::Result<()> {
 }
 
 async fn run_http(port: u16, search_path: Option<String>) -> std::io::Result<()> {
-    let app_data = Data::new(utils::AppState::new(
+    let app_data = Data::new(AppState::new(
         utils::create_request_map(search_path.clone()),
         Some(port),
     ));
@@ -36,7 +39,7 @@ async fn run_http(port: u16, search_path: Option<String>) -> std::io::Result<()>
             .wrap(NormalizePath::trim())
             .app_data(app_data.clone())
             .configure(|config| utils::configure_routes(search_path.clone(), config))
-        //.default_service(web::to(utils::handle_any_request))
+            .default_service(web::to(utils::default_request_handler))
     })
     .bind(("127.0.0.1", port))?
     .run()
