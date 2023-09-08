@@ -1,8 +1,8 @@
 {
     "name": "client_details_api_post",
-    "url": "clientdetails/v1/user",
+    "url": "clientdetails/v1/users/{user_id}",
     "response": {
-        "name": "User1",
+        "name": "John Doe",
         "id": "1",
         "token": "123"
     },

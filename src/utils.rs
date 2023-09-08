@@ -26,74 +26,69 @@ pub async fn default_request_handler(req: HttpRequest, state: Data<AppState>) ->
     println!("handling default request");
     println!("uri {:#?}", req.uri());
     println!("method {:#?}", req.method());
-
     for key in state.config_map.keys() {
-        if let Ok(re) = generate_regex_from_route(&key) {
-            if re.is_match(&path) {
-                match &state.config_map.get(key) {
-                    Some(config) => {
-                        match &config.response_file_type {
-                            ResponseFileType::Json(file_name) => {
-                                if let Ok(file) = File::open(file_name) {
-                                    if let Ok(result) = read_json_file(file) {
-                                        //let url = result.url.clone();
-                                        //let method = result.method.unwrap_or("GET".to_owned());
-                                        let code =
-                                            StatusCode::from_u16(result.code.unwrap_or(200) as u16)
-                                                .unwrap();
-                                        let content_type = result
-                                            .content_type
-                                            .unwrap_or(ContentType::json().to_string());
-                                        let headers = result.headers.unwrap_or(HashMap::new());
-                                        if let Ok(body) = serde_json::to_string(&result.response) {
-                                            // Start with StatusCode
-                                            let mut http_response = HttpResponse::build(code);
-                                            // Set ContentType
-                                            http_response.content_type(content_type);
-                                            // Insert Headers
-                                            for header in headers {
-                                                http_response.insert_header(header);
-                                            }
-
-                                            if let Some(duration) = result.delay {
-                                                sleep(Duration::from_secs(duration)).await;
-                                            }
-
-                                            // Insert Body
-                                            return http_response.body(body);
-                                        } else {
-                                            return HttpResponse::NotImplemented().body(format!(
-                                                "Unable to parse respons for path: '{}'",
-                                                path
-                                            ));
-                                        }
-                                    } else {
-                                        return HttpResponse::InternalServerError().body(format!(
-                                            "Unable to open file for read {}, for path: '{}'",
-                                            file_name, path
-                                        ));
+        if let Ok(re) = generate_regex_from_route(key) {
+            if re.is_match(path) {
+                println!(
+                    "route:{:?} matchs the path:{:?} for regex: {:?}",
+                    key, path, re
+                );
+                let config = &state.config_map[key];
+                match &config.response_file_type {
+                    ResponseFileType::Json(file_name) => {
+                        if let Ok(file) = File::open(file_name) {
+                            if let Ok(result) = read_json_file(file) {
+                                //let url = result.url.clone();
+                                //let method = result.method.unwrap_or("GET".to_owned());
+                                let code = StatusCode::from_u16(result.code.unwrap_or(200) as u16)
+                                    .unwrap();
+                                let content_type = result
+                                    .content_type
+                                    .unwrap_or(ContentType::json().to_string());
+                                let headers = result.headers.unwrap_or(HashMap::new());
+                                if let Ok(body) = serde_json::to_string(&result.response) {
+                                    // Start with StatusCode
+                                    let mut http_response = HttpResponse::build(code);
+                                    // Set ContentType
+                                    http_response.content_type(content_type);
+                                    // Insert Headers
+                                    for header in headers {
+                                        http_response.insert_header(header);
                                     }
+
+                                    if let Some(duration) = result.delay {
+                                        sleep(Duration::from_secs(duration)).await;
+                                    }
+
+                                    // Insert Body
+                                    return http_response.body(body);
                                 } else {
-                                    return HttpResponse::InternalServerError().body(format!(
-                                        "Unable to read file {}, for path: '{}'",
-                                        file_name, path
+                                    return HttpResponse::NotImplemented().body(format!(
+                                        "Unable to parse respons for path: '{}'",
+                                        path
                                     ));
                                 }
+                            } else {
+                                return HttpResponse::InternalServerError().body(format!(
+                                    "Unable to open file for read {}, for path: '{}'",
+                                    file_name, path
+                                ));
                             }
-                            ResponseFileType::Swagger => todo!("Swagger implementation pending"),
-                            ResponseFileType::StaticResponse => {
-                                todo!("Static Response handling pending")
-                            }
+                        } else {
+                            return HttpResponse::InternalServerError().body(format!(
+                                "Unable to read file {}, for path: '{}'",
+                                file_name, path
+                            ));
                         }
                     }
-                    None => {
-                        return HttpResponse::NotImplemented()
-                            .body(format!("Unable to find route for path: '{}'", path))
+                    ResponseFileType::Swagger => todo!("Swagger implementation pending"),
+                    ResponseFileType::StaticResponse => {
+                        todo!("Static Response handling pending")
                     }
                 }
             } else {
                 println!(
-                    "no matching route:{:?} registered for the path:{:?} for regex: {:?}",
+                    "route:{:?} does not match the path:{:?} for regex: {:?}",
                     key, path, re
                 );
             }
@@ -127,18 +122,18 @@ pub fn create_request_map(search_path: Option<String>) -> HashMap<String, Reques
                 Ok(result) => {
                     let url = result.url.clone();
 
-                    if contains_curly_braces(&url) {
-                        let path = path.file_name().unwrap().to_str().unwrap().to_string();
+                    //if contains_curly_braces(&url) {
+                    let path = path.file_name().unwrap().to_str().unwrap().to_string();
 
-                        let config = RequestHandlingConfig::new(ResponseFileType::Json(path));
+                    let config = RequestHandlingConfig::new(ResponseFileType::Json(path));
 
-                        // let response = serde_json::to_string(&result.response).unwrap();
-                        map.insert(url, config);
-                    } else {
-                        println!(
-                            "No data added to route map. A request with out curly braces will be handled by configure_routes"
-                        );
-                    }
+                    // let response = serde_json::to_string(&result.response).unwrap();
+                    map.insert(url, config);
+                    //} else {
+                    //    println!(
+                    //        "No data added to route map. A request with out curly braces will be handled by configure_routes"
+                    //    );
+                    //}
                 }
                 Err(err) => println!("Error reading JSON file: {}", err),
             }

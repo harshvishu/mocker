@@ -1,0 +1,22 @@
+{
+    "name": "client_details_api_post",
+    "url": "clientdetails/v1/users",
+    "response": [
+        {
+            "name": "John Doe",
+            "id": "1",
+            "token": "123"
+        },
+        {
+            "name": "Linda",
+            "id": "2",
+            "token": "124"
+        }
+    ],
+    "method": "GET",
+    "headers": {
+        "api_token": "12e90wrhdy9231ryc0cqwac23rt0812asdas",
+        "host": "www.example.com"
+    },
+    "delay" : 3
+}

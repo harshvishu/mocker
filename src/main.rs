@@ -38,7 +38,7 @@ async fn run_http(port: u16, search_path: Option<String>) -> std::io::Result<()>
             .wrap(utils::get_logger())
             .wrap(NormalizePath::trim())
             .app_data(app_data.clone())
-            .configure(|config| utils::configure_routes(search_path.clone(), config))
+            //.configure(|config| utils::configure_routes(search_path.clone(), config))
             .default_service(web::to(utils::default_request_handler))
     })
     .bind(("127.0.0.1", port))?

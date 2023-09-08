@@ -22,6 +22,7 @@ pub fn generate_regex_from_route(route: &str) -> Result<Regex, Error> {
 
 pub fn contains_curly_braces(url: &str) -> bool {
     let re = Regex::new(r#"\{[^\}]+\}"#).unwrap();
+    // let re = Regex::new(r#"\{[^\}]+\}"#).unwrap();
     re.is_match(url)
 }
 
