@@ -26,14 +26,17 @@ pub async fn default_request_handler(req: HttpRequest, state: Data<AppState>) ->
     println!("handling default request");
     println!("uri {:#?}", req.uri());
     println!("method {:#?}", req.method());
-    for key in state.config_map.keys() {
+
+    let config_map = state.config_map.lock().unwrap();
+
+    for key in config_map.keys() {
         if let Ok(re) = generate_regex_from_route(key) {
             if re.is_match(path) {
                 println!(
                     "route:{:?} matchs the path:{:?} for regex: {:?}",
                     key, path, re
                 );
-                let config = &state.config_map[key];
+                let config = &config_map[key];
                 match &config.response_file_type {
                     ResponseFileType::Json(file_name) => {
                         if let Ok(file) = File::open(file_name) {
@@ -120,7 +123,10 @@ pub fn create_request_map(search_path: Option<String>) -> HashMap<String, Reques
         if let Ok(file) = File::open(path.clone()) {
             match read_json_file(file) {
                 Ok(result) => {
-                    let url = result.url.clone();
+                    let mut url = result.url.clone();
+                    if url.starts_with('/') {
+                        url = String::from(&url[1..]);
+                    }
 
                     //if contains_curly_braces(&url) {
                     let path = path.file_name().unwrap().to_str().unwrap().to_string();

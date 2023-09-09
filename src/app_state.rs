@@ -1,14 +1,14 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::Mutex};
 
 pub struct AppState {
-    pub config_map: HashMap<String, RequestHandlingConfig>,
+    pub config_map: Mutex<HashMap<String, RequestHandlingConfig>>,
     pub port: u16,
 }
 
 impl AppState {
     pub fn new(file_map: HashMap<String, RequestHandlingConfig>, port: Option<u16>) -> Self {
         Self {
-            config_map: file_map,
+            config_map: Mutex::new(file_map),
             port: port.unwrap_or(8080),
         }
     }
