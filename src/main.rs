@@ -1,5 +1,3 @@
-use std::io;
-
 use crate::app_state::AppState;
 use actix_web::middleware::{Compress, NormalizePath};
 use actix_web::web::Data;
@@ -43,15 +41,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     .bind(("127.0.0.1", port))?;
 
     // Start the file watcher in a separate task
-    let watch_path = search_path.clone();
-    let watcher_task = watcher::file_watcher(watch_path);
+    let watcher_task = watcher::file_watcher(search_path);
 
     let server_task = async {
         server.run().await?;
         Ok::<(), std::io::Error>(())
     };
 
-    let _ = futures::executor::block_on(async {
+    futures::executor::block_on(async {
         futures::join!(watcher_task, server_task);
     });
 

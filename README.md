@@ -8,6 +8,7 @@ Run a mock server by using .json/.yaml files with configurations.
 - [x] Support for .json files 
 - [ ] Support for headers (guard)
 - [ ] Support for all http methods
+- [ ] Support for url query parameters (guard)
 - [ ] Support for body parameters (guard)
 - [ ] Add configuration using command line
 - [X] Network logger

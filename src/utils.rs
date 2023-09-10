@@ -19,9 +19,7 @@ use std::{
 
 pub async fn default_request_handler(req: HttpRequest, state: Data<AppState>) -> impl Responder {
     let mut path = req.path();
-    if path.starts_with('/') {
-        path = &path[1..];
-    }
+    path = path.trim_matches('/');
 
     println!("handling default request");
     println!("uri {:#?}", req.uri());
@@ -123,10 +121,7 @@ pub fn create_request_map(search_path: Option<String>) -> HashMap<String, Reques
         if let Ok(file) = File::open(path.clone()) {
             match read_json_file(file) {
                 Ok(result) => {
-                    let mut url = result.url.clone();
-                    if url.starts_with('/') {
-                        url = String::from(&url[1..]);
-                    }
+                    let mut url = result.url.trim_matches('/').clone();
 
                     //if contains_curly_braces(&url) {
                     let path = path.file_name().unwrap().to_str().unwrap().to_string();
@@ -134,12 +129,7 @@ pub fn create_request_map(search_path: Option<String>) -> HashMap<String, Reques
                     let config = RequestHandlingConfig::new(ResponseFileType::Json(path));
 
                     // let response = serde_json::to_string(&result.response).unwrap();
-                    map.insert(url, config);
-                    //} else {
-                    //    println!(
-                    //        "No data added to route map. A request with out curly braces will be handled by configure_routes"
-                    //    );
-                    //}
+                    map.insert(String::from(url), config);
                 }
                 Err(err) => println!("Error reading JSON file: {}", err),
             }

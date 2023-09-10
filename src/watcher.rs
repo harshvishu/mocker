@@ -1,10 +1,8 @@
-use futures::{
-    channel::mpsc::{channel, Receiver},
-    SinkExt, StreamExt,
-};
-use notify::{Config, Event, RecommendedWatcher, RecursiveMode, Watcher};
+use futures::{channel::mpsc::channel, SinkExt, StreamExt};
+use notify::{Config, RecommendedWatcher, RecursiveMode, Watcher};
 use std::path::Path;
 
+/*
 /// Async, futures channel based event watching
 fn main() {
     let path = std::env::args()
@@ -52,6 +50,7 @@ async fn async_watch<P: AsRef<Path>>(path: P) -> notify::Result<()> {
 
     Ok(())
 }
+*/
 
 pub async fn file_watcher<P: AsRef<Path>>(path: P) {
     let (mut tx, mut rx) = channel(32);
@@ -61,12 +60,6 @@ pub async fn file_watcher<P: AsRef<Path>>(path: P) {
                 tx.send(res).await.unwrap();
             })
         },
-        //move |res| {
-        //    let tx = tx.clone();
-        //    async move {
-        //        tx.send(res).await.unwrap();
-        //    }
-        //},
         Config::default(),
     )
     .expect("Failed to create file watcher");
