@@ -39,13 +39,29 @@ pub async fn default_request_handler(req: HttpRequest, state: Data<AppState>) ->
                         if let Ok(file) = File::open(file_name) {
                             if let Ok(result) = read_json_file(file) {
                                 //let url = result.url.clone();
-                                //let method = result.method.unwrap_or("GET".to_owned());
+
+                                let method = result.method;
+                                if let Some(method) = method {
+                                    if let Ok(method) = Method::from_str(method.as_str()) {
+                                        if req.method() != method {
+                                            return HttpResponse::NotImplemented().body(format!(
+                                                "{} method is not implemented for path: '{}'",
+                                                req.method(),
+                                                path
+                                            ));
+                                        }
+                                    }
+                                }
+
                                 let code = StatusCode::from_u16(result.code.unwrap_or(200) as u16)
                                     .unwrap();
+
                                 let content_type = result
                                     .content_type
                                     .unwrap_or(ContentType::json().to_string());
+
                                 let headers = result.headers.unwrap_or(HashMap::new());
+
                                 if let Ok(body) = serde_json::to_string(&result.response) {
                                     // Start with StatusCode
                                     let mut http_response = HttpResponse::build(code);

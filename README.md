@@ -16,3 +16,14 @@ Run a mock server by using .json/.yaml files with configurations.
 - [ ] Support swagger & postman collection
 - [ ] Support socket
 - [ ] Support for .yaml files 
+- [ ] Binary for running the tool 
+- [ ] Distribution using homebrew
+
+## Usage
+Clone the repository 
+use `cargo run` command
+
+### use flags 
+--s for path to look for config files. Default is the root of the project "."
+--p for port to run the mock server on. default is 8080
+

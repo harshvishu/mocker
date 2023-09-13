@@ -13,7 +13,6 @@
             "balance": "1234"
         }
     ],
-    "method": "GET",
     "headers": {
         "api_token": "12e90wrhdy9231ryc0cqwac23rt0812asdas",
         "host": "www.example.com"
