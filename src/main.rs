@@ -1,20 +1,22 @@
+use std::thread;
+
 use crate::app_state::AppState;
 use actix_web::middleware::{Compress, NormalizePath};
 use actix_web::web::Data;
 use actix_web::{web, App, HttpServer};
 use clap::Parser;
 use cli::Cli;
+use file_watcher::file_watcher;
 
 mod app_state;
 mod cli;
 mod file_reader;
+mod file_watcher;
 mod rex;
 mod utils;
-mod watcher;
-mod watchman;
 
 #[actix_web::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn main() -> Result<(), std::io::Error> {
     let cli = Cli::parse();
 
     let port = cli.port;
@@ -25,6 +27,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         Some(port),
     ));
     println!("configured routes:\n {:#?}", app_data.config_map);
+
+    let app_data_clone = app_data.clone();
+    let watcher_task = file_watcher(search_path, app_data_clone);
 
     // access logs are printed with the INFO level so ensure it is enabled by default
     env_logger::init_from_env(env_logger::Env::new().default_filter_or("info"));
@@ -41,16 +46,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     .bind(("127.0.0.1", port))?;
 
     // Start the file watcher in a separate task
-    let watcher_task = watcher::file_watcher(search_path);
-
     let server_task = async {
-        server.run().await?;
-        Ok::<(), std::io::Error>(())
+        _ = server.run().await;
     };
 
-    futures::executor::block_on(async {
-        futures::join!(watcher_task, server_task);
-    });
+    futures::join!(watcher_task, server_task);
 
+    // Return OK
     Ok(())
 }
