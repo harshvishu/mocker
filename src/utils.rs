@@ -7,6 +7,7 @@ use actix_web::rt::time::sleep;
 use actix_web::web;
 use actix_web::{http::header::ContentType, web::Data, HttpRequest};
 use actix_web::{http::StatusCode, HttpResponse, Responder};
+use log::{error, info, warn};
 use serde::Deserialize;
 use serde_json::Value;
 use std::str::FromStr;
@@ -21,16 +22,14 @@ pub async fn default_request_handler(req: HttpRequest, state: Data<AppState>) ->
     let mut path = req.path();
     path = path.trim_matches('/');
 
-    println!("handling default request");
-    println!("uri {:#?}", req.uri());
-    println!("method {:#?}", req.method());
+    info!(target: "actix", "Handling request {:?}", req);
 
     let config_map = state.config_map.lock().unwrap();
 
     for key in config_map.keys() {
         if let Ok(re) = generate_regex_from_route(key) {
             if re.is_match(path) {
-                println!(
+                info!(target: "actix",
                     "route:{:?} matchs the path:{:?} for regex: {:?}",
                     key, path, re
                 );
@@ -88,13 +87,13 @@ pub async fn default_request_handler(req: HttpRequest, state: Data<AppState>) ->
                     }
                 }
             } else {
-                println!(
+                warn!(target: "actix",
                     "route:{:?} does not match the path:{:?} for regex: {:?}",
                     key, path, re
                 );
             }
         } else {
-            println!("Unable to generate the regex");
+            warn!(target: "actix", "Unable to generate the regex");
         }
     }
     HttpResponse::NotImplemented().body(format!("Unable to find route for path: '{}'", path))
@@ -131,7 +130,7 @@ pub fn create_request_map(search_path: Option<String>) -> HashMap<String, Reques
                     // let response = serde_json::to_string(&result.response).unwrap();
                     map.insert(String::from(url), config);
                 }
-                Err(err) => println!("Error reading JSON file: {}", err),
+                Err(err) => warn!(target: "actix", "Error reading JSON file: {}", err),
             }
         }
     }
@@ -162,9 +161,6 @@ async fn hello() -> impl Responder {
 */
 
 async fn get_http_response(req: HttpRequest, file_name: String) -> impl Responder {
-    println!("{:#?}", req);
-    println!("{}", req.path());
-
     let mut path = req.path();
     if path.starts_with('/') {
         path = &path[1..];
@@ -246,13 +242,13 @@ pub fn configure_routes(search_path: Option<String>, config: &mut web::ServiceCo
                             .to(move |req: HttpRequest| get_http_response(req, file_name.clone()));
                         routes.push((url.clone(), route));
                     } else {
-                        println!(
+                        info!(target: "actix",
                             "Route not configured. The url: {} contains a curly brace and will be handled by default_service",
                             url
                         );
                     }
                 }
-                Err(err) => println!("Error reading JSON file: {}", err),
+                Err(err) => warn!("Error reading JSON file: {}", err),
             }
         }
     }

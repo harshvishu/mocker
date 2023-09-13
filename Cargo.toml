@@ -10,6 +10,7 @@ actix-web = "4.4.0"
 clap = { version = "4.4.2", features = ["derive"] }
 env_logger = "0.10.0"
 futures = "0.3.28"
+log = "0.4.20"
 notify = "6.1.1"
 regex = "1.9.5"
 serde = { version = "1.0.188", features = ["derive"] }

@@ -1,5 +1,3 @@
-use std::thread;
-
 use crate::app_state::AppState;
 use actix_web::middleware::{Compress, NormalizePath};
 use actix_web::web::Data;
@@ -7,6 +5,7 @@ use actix_web::{web, App, HttpServer};
 use clap::Parser;
 use cli::Cli;
 use file_watcher::file_watcher;
+use log::info;
 
 mod app_state;
 mod cli;
@@ -26,7 +25,8 @@ async fn main() -> Result<(), std::io::Error> {
         utils::create_request_map(Some(search_path.clone())),
         Some(port),
     ));
-    println!("configured routes:\n {:#?}", app_data.config_map);
+
+    info!(target: "actix", "Configured routes:\n {:#?}", app_data.config_map);
 
     let app_data_clone = app_data.clone();
     let watcher_task = file_watcher(search_path, app_data_clone);
