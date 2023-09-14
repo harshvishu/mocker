@@ -1,4 +1,5 @@
 use crate::app_state::AppState;
+use actix_web::middleware::Logger;
 use actix_web::middleware::{Compress, NormalizePath};
 use actix_web::web::Data;
 use actix_web::{web, App, HttpServer};
@@ -11,6 +12,7 @@ mod app_state;
 mod cli;
 mod file_reader;
 mod file_watcher;
+mod request;
 mod request_handler;
 mod rex;
 
@@ -38,7 +40,7 @@ async fn main() -> Result<(), std::io::Error> {
     let server = HttpServer::new(move || {
         App::new()
             .wrap(Compress::default())
-            .wrap(request_handler::get_logger())
+            .wrap(Logger::default())
             .wrap(NormalizePath::trim())
             .app_data(app_data.clone())
             .default_service(web::to(request_handler::default_request_handler))

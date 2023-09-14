@@ -31,19 +31,22 @@ pub async fn file_watcher<P: AsRef<Path>>(path: P, app_state: Data<AppState>) {
 
     while let Some(res) = rx.next().await {
         match res {
-            Ok(events) => events.iter().for_each(|event| match event.kind {
-                EventKind::Access(_) | EventKind::Any => {}
-                EventKind::Create(_)
-                | EventKind::Modify(_)
-                | EventKind::Remove(_)
-                | EventKind::Other => {
-                    info!(target: "file_watcher", "File changed: {:?}", event);
+            Ok(events) => {
+                let has_significant_event = events.iter().any(|event| {
+                    matches!(
+                        event.kind,
+                        EventKind::Create(_) | EventKind::Modify(_) | EventKind::Remove(_)
+                    )
+                });
+
+                if has_significant_event {
+                    info!(target: "file_watcher", "File changed: {:?}", events);
                     let search_path = path.as_ref().to_string_lossy().into_owned();
                     let request_map = request_handler::create_request_map(Some(search_path));
                     let mut config_map = app_state.config_map.lock().unwrap();
                     config_map.extend(request_map);
                 }
-            }),
+            }
             Err(e) => warn!("File watcher error: {:?}", e),
         }
     }
