@@ -14,7 +14,7 @@ impl AppState {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct RequestHandlingConfig {
     pub response_file_type: ResponseFileType,
 }
@@ -25,7 +25,7 @@ impl RequestHandlingConfig {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum ResponseFileType {
     Swagger,
     Json(String),
