@@ -23,9 +23,9 @@
         }
     ],
     "method": "GET",
-    "headers": {
+    "response_headers": {
         "api_token": "12e90wrhdy9231ryc0cqwac23rt0812asdas",
         "host": "www.example.com"
     },
-    "delay" : 0
+    "response_delay_ms" : 90
 }

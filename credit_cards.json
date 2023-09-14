@@ -1,6 +1,7 @@
 {
     "name": "credit_cards_json",
     "url": "cards/v1/credit",
+    "method": "GET",
     "response": [
         {
             "name": "Amex Card",
@@ -13,9 +14,11 @@
             "balance": "1234"
         }
     ],
-    "method": "GET",
-    "headers": {
+    "response_headers": {
         "api_token": "12e90wrhdy9231ryc0cqwac23rt0812asdas",
         "host": "www.example.com"
-    }
+    },
+    "response_content_type": [
+        "application/json"
+    ]
 }

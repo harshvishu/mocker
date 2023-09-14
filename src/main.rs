@@ -1,4 +1,5 @@
 use crate::app_state::AppState;
+use actix_web::middleware::Logger;
 use actix_web::middleware::{Compress, NormalizePath};
 use actix_web::web::Data;
 use actix_web::{web, App, HttpServer};
@@ -11,8 +12,9 @@ mod app_state;
 mod cli;
 mod file_reader;
 mod file_watcher;
+mod request;
+mod request_handler;
 mod rex;
-mod utils;
 
 #[actix_web::main]
 async fn main() -> Result<(), std::io::Error> {
@@ -22,7 +24,7 @@ async fn main() -> Result<(), std::io::Error> {
     let search_path = cli.search_path;
 
     let app_data = Data::new(AppState::new(
-        utils::create_request_map(Some(search_path.clone())),
+        request_handler::create_request_map(Some(search_path.clone())),
         Some(port),
     ));
 
@@ -38,10 +40,10 @@ async fn main() -> Result<(), std::io::Error> {
     let server = HttpServer::new(move || {
         App::new()
             .wrap(Compress::default())
-            .wrap(utils::get_logger())
+            .wrap(Logger::default())
             .wrap(NormalizePath::trim())
             .app_data(app_data.clone())
-            .default_service(web::to(utils::default_request_handler))
+            .default_service(web::to(request_handler::default_request_handler))
     })
     .bind(("127.0.0.1", port))?;
 
