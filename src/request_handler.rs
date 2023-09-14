@@ -166,12 +166,17 @@ pub fn create_request_map(search_path: Option<String>) -> HashMap<String, Reques
                     let url = result.url.trim_matches('/');
 
                     //if contains_curly_braces(&url) {
-                    let path = path.file_name().unwrap().to_str().unwrap().to_string();
+                    match path.to_str() {
+                        Some(path) => {
+                            let config = RequestHandlingConfig::new(ResponseFileType::Json(
+                                path.to_string(),
+                            ));
 
-                    let config = RequestHandlingConfig::new(ResponseFileType::Json(path));
-
-                    // let response = serde_json::to_string(&result.response).unwrap();
-                    map.insert(String::from(url), config);
+                            // let response = serde_json::to_string(&result.response).unwrap();
+                            map.insert(String::from(url), config);
+                        }
+                        None => warn!(target: "actix", "Error reading JSON file"),
+                    }
                 }
                 Err(err) => warn!(target: "actix", "Error reading JSON file: {}", err),
             }

@@ -28,6 +28,8 @@ async fn main() -> Result<(), std::io::Error> {
         Some(port),
     ));
 
+    println!("ROUTES FOUND : {:?}", app_data.config_map);
+
     info!(target: "actix", "Configured routes:\n {:#?}", app_data.config_map);
 
     let app_data_clone = app_data.clone();
