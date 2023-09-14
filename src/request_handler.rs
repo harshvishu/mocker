@@ -20,7 +20,7 @@ pub async fn default_request_handler(req: HttpRequest, state: Data<AppState>) ->
 
     info!(target: "actix", "Handling request {:?}", req);
 
-    let config_map = state.config_map.lock().unwrap();
+    let config_map = state.config_map.lock().unwrap().clone();
 
     for key in config_map.keys() {
         if let Ok(re) = generate_regex_from_route(key) {
@@ -49,11 +49,33 @@ pub async fn default_request_handler(req: HttpRequest, state: Data<AppState>) ->
                                     }
                                 }
 
+                                // TODO: Move this headers check to separate function
+                                let incoming_headers: HashMap<String, String> = req
+                                    .headers()
+                                    .iter()
+                                    .map(|h| (h.0.to_string(), h.1.to_str().unwrap().to_string()))
+                                    .collect();
+
+                                let required_headers = result.request_headers.unwrap_or_default();
+
+                                let contains_all_headers = required_headers.iter().all(|(k, _)| {
+                                    incoming_headers.contains_key(k)
+                                    // && incoming_headers.get(k) == Some(v)
+                                });
+
+                                if !contains_all_headers {
+                                    return HttpResponse::NotImplemented().body(format!(
+                                        "The request for URL {} is missing required headers: '{:?}'. The request had {:?} headers only",
+                                        key, required_headers, incoming_headers
+                                    ));
+                                }
+
                                 if let Ok(body) = serde_json::to_string(&result.response) {
                                     // Start with StatusCode
-                                    let code =
-                                        StatusCode::from_u16(result.code.unwrap_or(200) as u16)
-                                            .unwrap();
+                                    let code = StatusCode::from_u16(
+                                        result.response_code.unwrap_or(200) as u16,
+                                    )
+                                    .unwrap();
 
                                     let mut http_response = HttpResponse::build(code);
 
