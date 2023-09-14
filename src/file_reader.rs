@@ -1,6 +1,6 @@
 use std::io::BufReader;
 
-use crate::utils::Request;
+use crate::request_handler::Request;
 use std::fs::File;
 
 pub fn read_json_file(file: File) -> Result<Request, Box<dyn std::error::Error>> {

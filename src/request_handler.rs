@@ -7,7 +7,7 @@ use actix_web::rt::time::sleep;
 use actix_web::web;
 use actix_web::{http::header::ContentType, web::Data, HttpRequest};
 use actix_web::{http::StatusCode, HttpResponse, Responder};
-use log::{error, info, warn};
+use log::{info, warn};
 use serde::Deserialize;
 use serde_json::Value;
 use std::str::FromStr;
@@ -136,7 +136,7 @@ pub fn create_request_map(search_path: Option<String>) -> HashMap<String, Reques
         if let Ok(file) = File::open(path.clone()) {
             match read_json_file(file) {
                 Ok(result) => {
-                    let mut url = result.url.trim_matches('/').clone();
+                    let url = result.url.trim_matches('/');
 
                     //if contains_curly_braces(&url) {
                     let path = path.file_name().unwrap().to_str().unwrap().to_string();
@@ -162,19 +162,12 @@ pub struct Request {
     code: Option<i32>,
     content_type: Option<String>,
     headers: Option<HashMap<String, String>>,
-    delay: Option<u64>, // TODO: Add a dely in API response
+    delay: Option<u64>,
 }
 
 pub fn get_logger() -> Logger {
     Logger::default()
 }
-
-/*
-#[get("/")]
-async fn hello() -> impl Responder {
-    HttpResponse::Ok().body("Hello world!")
-}
-*/
 
 async fn get_http_response(req: HttpRequest, file_name: String) -> impl Responder {
     let mut path = req.path();
