@@ -10,7 +10,6 @@ pub struct IncomingRequest {
     pub request_headers: Option<HashMap<String, String>>,
     pub response: Value,
     pub response_code: Option<i32>,
-    pub response_content_type: Option<Vec<String>>,
     pub response_headers: Option<HashMap<String, String>>,
     pub response_delay_ms: Option<u64>,
 }

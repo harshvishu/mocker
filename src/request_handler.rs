@@ -150,13 +150,6 @@ async fn convert_file_content_to_http_response(
 
         let mut http_response = HttpResponse::build(code);
 
-        let content_types = result.response_content_type.unwrap_or_default();
-
-        // Set ContentType
-        for content_type in content_types {
-            http_response.content_type(content_type);
-        }
-
         // Insert Headers
         let headers = result.response_headers.unwrap_or(HashMap::new());
         for header in headers {
