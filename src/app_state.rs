@@ -29,5 +29,6 @@ impl RequestHandlingConfig {
 pub enum ResponseFileType {
     Swagger,
     Json(String),
+    Yaml(String),
     StaticResponse,
 }

@@ -7,7 +7,7 @@ Run a mock server by using .json/.yaml files with configurations.
 ## Features
 - [x] Support for .json files 
 - [x] Support for headers (guard)
-- [ ] Support for all http methods
+- [x] Support for all http methods
 - [x] Support for url query parameters (guard)
 - [ ] Support for body parameters (guard)
 - [x] Add configuration using command line
@@ -15,7 +15,7 @@ Run a mock server by using .json/.yaml files with configurations.
 - [x] File Watcher
 - [ ] Support swagger & postman collection
 - [ ] Support socket
-- [ ] Support for .yaml files 
+- [x] Support for .yaml files 
 - [ ] Binary for running the tool 
 - [ ] Distribution using homebrew
 
@@ -32,7 +32,7 @@ use `cargo run -- -s ./example/json_config`
 
 ### JSON configuration
 - "name" : An optional name to this configuration. Only used for logging.
-- "request_method" : Defines what method/s should this url work on. ex: if this value is "GET" then only a GET request will be processed, rest will be replied with "Method not Implemented". Can be a list of methods ["GET", "POST"].
+- "request_method" : Defines what method/s should this url work on. ex: if this value is "GET" then only a GET request will be processed, rest will be replied with "Method not Implemented". Can be a list of methods ["GET", "POST"]. Ignore if you want to use any http method to work with the url.
 - "request_headers" : Use a dictionary/map to to return a response only when the request contains these headers(keys for now).
 - "response_headers" : Use a dictionary/map to get these values in headers of incoming http response.
 - "response_code" : The response code to set set for response.
