@@ -2,6 +2,14 @@
 name = "moker"
 version = "0.1.0"
 edition = "2021"
+authors = ["Harsh Vishwakarma <vishwakarma.harsh1993@gmail.com>"]
+license = "MIT OR Apache-2.0"
+description = "A tool to run mock HTTP server using simple JSON or YAML files only"
+readme = "README.md"
+homepage = "https://github.com/harshvishu/mocker"
+repository = "https://github.com/harshvishu/mocker"
+keywords = ["cli", "mock", "http", "server"]
+categories = ["command-line-utilities"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

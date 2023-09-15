@@ -107,7 +107,7 @@ async fn convert_file_content_to_http_response(
 ) -> HttpResponse {
     if let Some(method) = result.request_method {
         if let Some(method) = method.as_str() {
-            if let Ok(method) = Method::from_str(method) {
+            if let Ok(method) = Method::from_str(method.to_uppercase().as_str()) {
                 if req.method() != method {
                     return HttpResponse::NotImplemented().body(format!(
                         "{} method is not implemented for path: '{}'",
