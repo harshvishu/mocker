@@ -36,10 +36,26 @@ pub async fn default_request_handler(req: HttpRequest, state: Data<AppState>) ->
                             if let Ok(result) = read_json_file(file) {
                                 //let url = result.url.clone();
 
-                                let method = result.method;
-                                if let Some(method) = method {
-                                    if let Ok(method) = Method::from_str(method.as_str()) {
-                                        if req.method() != method {
+                                if let Some(method) = result.request_method {
+                                    if let Some(method) = method.as_str() {
+                                        if let Ok(method) = Method::from_str(method) {
+                                            if req.method() != method {
+                                                return HttpResponse::NotImplemented().body(
+                                                    format!(
+                                                "{} method is not implemented for path: '{}'",
+                                                req.method(),
+                                                path
+                                            ),
+                                                );
+                                            }
+                                        }
+                                    } else if let Some(method) = method.as_array() {
+                                        let values: Vec<&str> = method
+                                            .iter()
+                                            .filter_map(|value| value.as_str())
+                                            .collect();
+
+                                        if !values.contains(&req.method().as_str()) {
                                             return HttpResponse::NotImplemented().body(format!(
                                                 "{} method is not implemented for path: '{}'",
                                                 req.method(),

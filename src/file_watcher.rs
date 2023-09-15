@@ -21,13 +21,13 @@ pub async fn file_watcher<P: AsRef<Path>>(path: P, app_state: Data<AppState>) {
     .unwrap();
 
     debouncer
+        .cache()
+        .add_root(path.as_ref(), RecursiveMode::Recursive);
+
+    debouncer
         .watcher()
         .watch(path.as_ref(), RecursiveMode::Recursive)
         .expect("Failed to watch path");
-
-    debouncer
-        .cache()
-        .add_root(path.as_ref(), RecursiveMode::Recursive);
 
     while let Some(res) = rx.next().await {
         match res {

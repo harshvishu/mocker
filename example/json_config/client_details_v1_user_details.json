@@ -6,7 +6,7 @@
         "id": "1",
         "token": "123"
     },
-    "method": "GET",
+    "request_method": "GET",
     "response_headers": {
         "api_token": "12e90wrhdy9231ryc0cqwac23rt0812asdas",
         "host": "www.example.com"

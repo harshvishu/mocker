@@ -1,7 +1,10 @@
 {
     "name": "credit_cards_json",
     "url": "cards/v1/credit",
-    "method": "GET",
+    "request_method": [
+        "GET",
+        "POST"
+    ],
     "response": [
         {
             "name": "Amex Card",

@@ -5,8 +5,7 @@ use std::collections::HashMap;
 #[derive(Debug, Deserialize, Clone)]
 pub struct IncomingRequest {
     pub name: Option<String>,
-    pub method: Option<String>,
-    pub methods: Option<Vec<String>>,
+    pub request_method: Option<Value>,
     pub url: String,
     pub request_headers: Option<HashMap<String, String>>,
     pub response: Value,

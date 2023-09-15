@@ -22,7 +22,6 @@
             ]
         }
     ],
-    "method": "GET",
     "response_headers": {
         "expiry_date": "20/12/2023"
     },
