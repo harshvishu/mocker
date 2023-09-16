@@ -1,21 +1,24 @@
 {
     "name": "account_details",
     "url": "account/v1/user/{id}",
+    "method": "POST",
     "response": {
-        "number": "126037607648907231",
-        "username": "jhon_doe_1947",
-        "type": "savings",
-        "balance" : 5687123.56,
-        "profiles" : [
-            "sidney_90012",
-            "linda_12312",
-            "mindy_markel"
-        ]
-    },
-    "request_method": "POST",
-    "headers": {
-        "api_token": "12e90wrhdy9231ryc0cqwac23rt0812asdas",
-        "host": "www.example.com"
-    },
-    "delay" : 3
+        "delay_ms": 3,
+        "status_code": 201,
+        "headers": {
+            "api_token": "12e90wrhdy9231ryc0cqwac23rt0812asdas",
+            "host": "www.example.com"
+        },
+        "body": {
+            "number": "126037607648907231",
+            "username": "jhon_doe_1947",
+            "type": "savings",
+            "balance": 5687123.56,
+            "profiles": [
+                "sidney_90012",
+                "linda_12312",
+                "mindy_markel"
+            ]
+        }
+    }
 }

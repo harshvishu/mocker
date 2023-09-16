@@ -105,7 +105,7 @@ async fn convert_file_content_to_http_response(
     path: &str,
     key: &String,
 ) -> HttpResponse {
-    if let Some(method) = result.request_method {
+    if let Some(method) = result.method {
         if let Some(method) = method.as_str() {
             if let Ok(method) = Method::from_str(method.to_uppercase().as_str()) {
                 if req.method() != method {
@@ -133,7 +133,7 @@ async fn convert_file_content_to_http_response(
         .iter()
         .map(|h| (h.0.to_string(), h.1.to_str().unwrap().to_string()))
         .collect();
-    let required_headers = result.request_headers.unwrap_or_default();
+    let required_headers = result.headers.unwrap_or_default();
     let contains_all_headers = required_headers.iter().all(|(k, _)| {
         incoming_headers.contains_key(k)
         // && incoming_headers.get(k) == Some(v)
@@ -144,22 +144,25 @@ async fn convert_file_content_to_http_response(
             key, required_headers, incoming_headers
         ));
     }
-    if let Ok(body) = serde_json::to_string(&result.response) {
+
+    let response = result.response;
+
+    if let Ok(body) = serde_json::to_string(&response.body) {
         // Start with StatusCode
-        let code = StatusCode::from_u16(result.response_code.unwrap_or(200) as u16).unwrap();
+        let code = StatusCode::from_u16(response.status_code.unwrap_or(200) as u16).unwrap();
 
         let mut http_response = HttpResponse::build(code);
 
         // Insert Headers
-        let headers = result.response_headers.unwrap_or(HashMap::new());
+        let headers = response.headers.unwrap_or(HashMap::new());
         for header in headers {
             http_response.insert_header(header);
         }
 
-        if let Some(duration) = result.response_delay_ms {
+        if let Some(duration) = response.delay_ms {
             sleep(Duration::from_millis(duration)).await;
         }
-        if let Some(duration) = result.response_delay_ms {
+        if let Some(duration) = response.delay_ms {
             sleep(Duration::from_secs(duration)).await;
         }
 

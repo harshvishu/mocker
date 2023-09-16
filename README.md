@@ -1,41 +1,46 @@
 # moker
-A simple mock REST client for everyone
+A Simple Mock REST Client for Everyone
 
 ## Main Objective 
-Run a mock server from json or yaml files.
+Moker allows you to easily run a mock server using JSON or YAML files.
 
 ## Features
-- [x] Support for .json files 
-- [x] Support for headers (guard)
-- [x] Support for all http methods
-- [x] Support for url query parameters (guard)
-- [ ] Support for body parameters (guard)
-- [x] Add configuration using command line
+- [x] Supports .json files 
+- [x] Supports headers (guard)
+- [x] Supports all HTTP methods
+- [x] Supports URL query parameters
+- [ ] Supports body parameters (guard)
+- [x] Configurable through the command line
 - [x] Network logger
-- [x] File Watcher
-- [ ] Support swagger & postman collection
-- [ ] Support socket
-- [x] Support for .yaml files 
-- [ ] Distyribution using binary 
-- [ ] Distribution using homebrew
+- [x] File watcher
+- [ ] Supports Swagger & Postman collection
+- [ ] Supports socket
+- [x] Supports .yaml files 
+- [ ] Distribution via binary 
+- [ ] Distribution via Homebrew
 
 ## Usage
-Clone the repository 
-use `cargo run` command
+1. Clone the repository 
+2. Use the `cargo run` command
 
-To run the samples JSON files 
-use `cargo run -- -s ./example/json -p 8000`
+To run the sample JSON files, use:
 
-### use flags 
-- -s for path to look for config files. Default is the root of the project "."
-- -p for port to run the mock server on. default is 8080
+```bash
+cargo run -- -s ./example/json -p 8000
+```
 
-### JSON configuration
-- "name" : An optional name to this configuration. Only used for logging.
-- "request_method" : Defines what method/s should this url work on. ex: if this value is "GET" then only a GET request will be processed, rest will be replied with "Method not Implemented". Can be a list of methods ["GET", "POST"]. Ignore if you want to use any http method to work with the url.
-- "request_headers" : Use a dictionary/map to to return a response only when the request contains these headers(keys for now).
+### Flags 
+- `-s`: Path to look for config files. Default is the root of the project (".")
+- `-p`: Port to run the mock server on. Default is 8080
 
-- "response_headers" : Use a dictionary/map to get these values in headers of incoming http response.
-- "response_code" : The http response code to set for response.
-- "response" : Use the JSON or raw string you want to be returned in the incoming http response
-- "response_delay_ms": Add a delay to the response in milli seconds.
+### JSON Configuration for Route
+- `"name"`: An optional name for this configuration, used for logging purposes.
+- `"method"`: Defines the allowed HTTP method/s for this URL. If set, only requests with specified methods will be processed; others will receive a "method not implemented" response. Can be a list of methods (e.g., `["get", "post"]`). Ignore if you want to allow any HTTP method.
+- `"headers"`: Define a dictionary/map of headers. The response will be sent only if the request contains these headers.
+
+### Response Configuration
+Within the JSON body, use the `"response"` parameter to specify the following values:
+- `"headers"`: Define a dictionary/map of headers to be included in the HTTP response.
+- `"status_code"`: Set the HTTP response code.
+- `"body"`: Provide the JSON or raw string you want to be returned in the HTTP response.
+- `"delay_ms"`: Add a delay to the response in milliseconds.

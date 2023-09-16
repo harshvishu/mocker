@@ -2,19 +2,16 @@
     "name": "product_details",
     "url": "/earphones/sony/{priduct_id}",
     "response": {
-        "id": "978878",
-        "name": "Wireless ear phones",
-        "price" : 5687123.56,
-        "features" : [
-            "Dolby",
-            "Surround",
-            "5.1 Channel"
-        ]
-    },
-    "request_method": "GET",
-    "response_headers": {
-        "api_token": "12e90wrhdy9231ryc0cqwac23rt0812asdas",
-        "host": "www.example.com"
-    },
-    "response_delay_ms" : 0
+        "status_code": 201,
+        "body": {
+            "id": "978878",
+            "name": "Wireless ear phones",
+            "price": 5687123.56,
+            "features": [
+                "Dolby",
+                "Surround",
+                "5.1 Channel"
+            ]
+        }
+    }
 }

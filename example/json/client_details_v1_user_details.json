@@ -1,15 +1,17 @@
 {
     "name": "client_details_api_post",
     "url": "clientdetails/v1/users/{user_id}",
+    "method": "GET",
     "response": {
-        "name": "John Doe",
-        "id": "1",
-        "token": "123"
-    },
-    "request_method": "GET",
-    "response_headers": {
-        "api_token": "12e90wrhdy9231ryc0cqwac23rt0812asdas",
-        "host": "www.example.com"
-    },
-    "response_content_type" : ["application/json"]
+        "status_code": 201,
+        "headers": {
+            "api_token": "12e90wrhdy9231ryc0cqwac23rt0812asdas",
+            "host": "www.example.com"
+        },
+        "body": {
+            "name": "John Doe",
+            "id": "1",
+            "token": "123"
+        }
+    }
 }
