@@ -12,6 +12,18 @@ use std::str::FromStr;
 use std::time::Duration;
 use std::{collections::HashMap, fs::File};
 
+/// Asynchronously handles incoming HTTP requests by matching routes to configuration files and generating responses.
+///
+/// This function processes an incoming HTTP request, matches the request path to configured routes, and generates an appropriate response. It also handles various aspects such as request methods, headers, delays, and error handling.
+///
+/// # Arguments
+///
+/// * `req` - The incoming `HttpRequest` to be handled.
+/// * `state` - A reference to the application state (`AppState`) shared across the application.
+///
+/// # Returns
+///
+/// Returns an implementation of `Responder` representing the HTTP response.
 pub async fn default_request_handler(req: HttpRequest, state: Data<AppState>) -> impl Responder {
     let mut path = req.path();
     path = path.trim_matches('/');
@@ -53,6 +65,18 @@ pub async fn default_request_handler(req: HttpRequest, state: Data<AppState>) ->
     HttpResponse::NotImplemented().body(format!("Unable to find route for path: '{}'", path))
 }
 
+/// Reads a JSON file and converts it into an `HttpResponse`.
+///
+/// # Arguments
+///
+/// * `file_name` - A reference to the name of the JSON file to be read.
+/// * `req` - An `HttpRequest` object representing the incoming request.
+/// * `path` - A string representing the request path.
+/// * `key` - A reference to the key associated with the configuration.
+///
+/// # Returns
+///
+/// Returns an `HttpResponse` representing the response to be sent back to the client.
 async fn read_from_json_file(
     file_name: &String,
     req: &HttpRequest,
@@ -76,6 +100,18 @@ async fn read_from_json_file(
     }
 }
 
+/// Reads a YAML file and converts it into an `HttpResponse`.
+///
+/// # Arguments
+///
+/// * `file_name` - A reference to the name of the YAML file to be read.
+/// * `req` - An `HttpRequest` object representing the incoming request.
+/// * `path` - A string representing the request path.
+/// * `key` - A reference to the key associated with the configuration.
+///
+/// # Returns
+///
+/// Returns an `HttpResponse` representing the response to be sent back to the client.
 async fn read_from_yaml_file(
     file_name: &String,
     req: &HttpRequest,
@@ -99,6 +135,18 @@ async fn read_from_yaml_file(
     }
 }
 
+/// Converts the content of a file into an `HttpResponse`.
+///
+/// # Arguments
+///
+/// * `result` - An `IncomingRequest` containing the request configuration.
+/// * `req` - An `HttpRequest` object representing the incoming request.
+/// * `path` - A string representing the request path.
+/// * `key` - A reference to the key associated with the configuration.
+///
+/// # Returns
+///
+/// Returns an `HttpResponse` representing the response to be sent back to the client.
 async fn convert_file_content_to_http_response(
     result: IncomingRequest,
     req: &HttpRequest,
@@ -173,10 +221,26 @@ async fn convert_file_content_to_http_response(
     }
 }
 
-/// Setup a directory of URL and respective filw which contains the response and configuration for
-/// that route. Call this function when there are changes in the search_path directory to re-map
-/// the routes
-pub fn create_request_map(search_path: Option<String>) -> HashMap<String, RequestHandlingConfig> {
+/// Creates a map of routes to their corresponding configurations.
+///
+/// This function sets up a directory of URLs and their respective configuration files containing response data. It reads the files, processes them, and maps each route to its configuration.
+///
+/// # Arguments
+///
+/// * `search_path` - An optional string representing the path to the directory containing the configuration files. If not provided, the default is set to the current directory (`"./"`).
+///
+/// # Returns
+///
+/// Returns a `HashMap` where the keys are route URLs and the values are associated `RequestHandlingConfig` structures.
+///
+/// # Example
+///
+/// ```rust
+/// use crate::request_handler::create_request_map;
+///
+/// let route_map = create_route_map(Some("./config".to_string()));
+/// ```
+pub fn create_route_map(search_path: Option<String>) -> HashMap<String, RequestHandlingConfig> {
     let search_path = search_path.unwrap_or(String::from("./"));
     let mut map = HashMap::new();
 
@@ -206,6 +270,13 @@ pub fn create_request_map(search_path: Option<String>) -> HashMap<String, Reques
     map
 }
 
+/// Inserts a JSON request configuration into the request map.
+///
+/// # Arguments
+///
+/// * `result` - An `IncomingRequest` containing the request configuration.
+/// * `path` - A `PathBuf` representing the path to the JSON file.
+/// * `map` - A mutable reference to the route map (`HashMap`).
 fn insert_json_request_into_map(
     result: IncomingRequest,
     path: PathBuf,
@@ -223,6 +294,13 @@ fn insert_json_request_into_map(
     }
 }
 
+/// Inserts a YAML request configuration into the request map.
+///
+/// # Arguments
+///
+/// * `result` - An `IncomingRequest` containing the request configuration.
+/// * `path` - A `PathBuf` representing the path to the YAML file.
+/// * `map` - A mutable reference to the route map (`HashMap`).
 fn insert_yaml_request_into_map(
     result: IncomingRequest,
     path: PathBuf,

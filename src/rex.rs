@@ -1,5 +1,21 @@
 use regex::{Error, Regex};
 
+/// Generates a regular expression pattern from a route string.
+///
+/// This function takes a route string and constructs a regular expression pattern that can be used
+/// to match URLs that conform to the route pattern.
+///
+/// # Arguments
+///
+/// * `route` - A string representing the route. It may contain placeholders enclosed in curly braces (e.g., `{id}`).
+///
+/// # Returns
+///
+/// Returns a `Result` containing a `Regex` pattern if successful, or an `Error` if an error occurs during pattern construction.
+///
+/// # Panics
+///
+/// This function does not panic under normal circumstances. If an error occurs during regular expression pattern construction, it returns an `Err` variant containing the error.
 pub fn generate_regex_from_route(route: &str) -> Result<Regex, Error> {
     let mut regex_pattern = String::new();
 
@@ -18,12 +34,6 @@ pub fn generate_regex_from_route(route: &str) -> Result<Regex, Error> {
     regex_pattern = format!("^{}$", regex_pattern);
 
     Regex::new(&regex_pattern)
-}
-
-pub fn contains_curly_braces(url: &str) -> bool {
-    let re = Regex::new(r#"\{[^\}]+\}"#).unwrap();
-    // let re = Regex::new(r#"\{[^\}]+\}"#).unwrap();
-    re.is_match(url)
 }
 
 #[cfg(test)]

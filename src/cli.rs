@@ -1,34 +1,18 @@
-use clap::{Parser, Subcommand};
+use clap::Parser;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 pub struct Cli {
-    /// Optional name to operate on
-    // pub name: Option<String>,
-
     /// network port to use
+    ///
+    /// This option allows the user to specify the network port to be used by the application.
     #[arg(short, long, default_value_t = 8080, value_name = "PORT", value_parser=clap::value_parser!(u16).range(1024..65535))]
     pub port: u16,
 
-    /// Path to look for configuration files. Default it will look for files in the current
-    /// directory
+    /// Path to look for configuration files.
+    ///
+    /// This option allows the user to specify a custom search path for configuration files.
+    /// By default, it will look for files in the current directory.
     #[arg(short, long, default_value_t = String::from("./"), value_name = "SEARCH_PATH")]
     pub search_path: String,
-
-    /// Turn debugging information on
-    #[arg(short, long, action = clap::ArgAction::Count)]
-    pub debug: u8,
-
-    #[command(subcommand)]
-    pub command: Option<Commands>,
-}
-
-#[derive(Subcommand, Debug)]
-pub enum Commands {
-    /// does testing things
-    Test {
-        /// lists test values
-        #[arg(short, long)]
-        list: bool,
-    },
 }
