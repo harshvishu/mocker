@@ -10,6 +10,7 @@ Moker allows you to easily run a mock server using JSON or YAML files.
 - [x] Supports all HTTP methods
 - [x] Supports URL query parameters
 - [ ] Supports body parameters (guard)
+- [ ] LRU Cache
 - [x] Configurable through the command line
 - [x] Network logger
 - [x] File watcher
