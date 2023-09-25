@@ -28,6 +28,7 @@ use file_watcher::file_watcher;
 use log::info;
 
 mod app_state;
+mod cache;
 mod cli;
 mod file_reader;
 mod file_watcher;
@@ -54,11 +55,13 @@ async fn main() -> Result<(), std::io::Error> {
     // Extract port and search path from command line arguments
     let port = cli.port;
     let search_path = cli.search_path;
+    let cache_size = cli.cache;
 
     // Create application data with configuration map and port
     let app_data = Data::new(AppState::new(
         request_handler::create_route_map(Some(search_path.clone())),
         Some(port),
+        cache_size,
     ));
 
     // Log configured routes

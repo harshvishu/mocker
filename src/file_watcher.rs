@@ -108,8 +108,11 @@ fn handle_watch_event<P: AsRef<Path>>(
     if has_significant_event {
         info!(target: "file_watcher", "File changed: {:?}", events);
         let search_path = path.as_ref().to_string_lossy().into_owned();
-        let request_map = request_handler::create_route_map(Some(search_path));
-        let mut config_map = app_state.config_map.lock().unwrap();
-        config_map.extend(request_map);
+        let new_route_map = request_handler::create_route_map(Some(search_path));
+        let mut outdated_route_map = app_state.config_map.lock().unwrap();
+        outdated_route_map.extend(new_route_map);
+
+        let mut cache = app_state.cache.lock().unwrap();
+        cache.invalidate();
     }
 }

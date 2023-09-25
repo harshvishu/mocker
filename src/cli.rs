@@ -15,4 +15,10 @@ pub struct Cli {
     /// By default, it will look for files in the current directory.
     #[arg(short, long, default_value_t = String::from("./"), value_name = "SEARCH_PATH")]
     pub search_path: String,
+
+    /// Size of the cache.
+    ///
+    /// This option allows you to cache the HttpResponse for routes.
+    #[arg(short, long, default_value_t = 20, value_name = "CACHE_SIZE")]
+    pub cache: usize,
 }

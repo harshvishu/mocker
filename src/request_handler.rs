@@ -32,30 +32,43 @@ pub async fn default_request_handler(req: HttpRequest, state: Data<AppState>) ->
 
     let config_map = state.config_map.lock().unwrap().clone();
 
-    for key in config_map.keys() {
-        if let Ok(re) = generate_regex_from_route(key) {
+    for route in config_map.keys() {
+        if let Ok(re) = generate_regex_from_route(route) {
             if re.is_match(path) {
                 info!(
                     "route:{:?} matchs the path:{:?} for regex: {:?}",
-                    key, path, re
+                    route, path, re
                 );
-                let config = &config_map[key];
+
+                let cached_data = state.cache.lock().unwrap().get(route.to_string());
+                if let Some(incoming_request) = cached_data {
+                    info!("Cached value exists for rout {}", route);
+                    return get_http_response_from_incoming_request(
+                        incoming_request,
+                        &req,
+                        path,
+                        route,
+                    )
+                    .await;
+                }
+
+                let config = &config_map[route];
                 match &config.response_file_type {
                     ResponseFileType::Json(file_name) => {
-                        return read_from_json_file(file_name, &req, path, key).await
+                        return read_from_json_file(file_name, &req, path, route, state).await;
                     }
                     ResponseFileType::Swagger => todo!("Swagger implementation pending"),
                     ResponseFileType::StaticResponse => {
                         todo!("Static Response handling pending")
                     }
                     ResponseFileType::Yaml(file_name) => {
-                        return read_from_yaml_file(file_name, &req, path, key).await
+                        return read_from_yaml_file(file_name, &req, path, route, state).await
                     }
                 }
             } else {
                 warn!(
                     "route:{:?} does not match the path:{:?} for regex: {:?}",
-                    key, path, re
+                    route, path, re
                 );
             }
         } else {
@@ -81,11 +94,17 @@ async fn read_from_json_file(
     file_name: &String,
     req: &HttpRequest,
     path: &str,
-    key: &String,
+    route: &String,
+    state: Data<AppState>,
 ) -> HttpResponse {
     if let Ok(file) = File::open(file_name) {
         if let Ok(result) = read_json_file(file) {
-            convert_file_content_to_http_response(result, req, path, key).await
+            state
+                .cache
+                .lock()
+                .unwrap()
+                .insert(route.to_string(), result.clone());
+            get_http_response_from_incoming_request(result, req, path, route).await
         } else {
             HttpResponse::InternalServerError().body(format!(
                 "Unable to open file for read {}, for path: '{}'",
@@ -116,11 +135,17 @@ async fn read_from_yaml_file(
     file_name: &String,
     req: &HttpRequest,
     path: &str,
-    key: &String,
+    route: &String,
+    state: Data<AppState>,
 ) -> HttpResponse {
     if let Ok(file) = File::open(file_name) {
         if let Ok(result) = read_yaml_file(file) {
-            convert_file_content_to_http_response(result, req, path, key).await
+            state
+                .cache
+                .lock()
+                .unwrap()
+                .insert(route.to_string(), result.clone());
+            get_http_response_from_incoming_request(result, req, path, route).await
         } else {
             HttpResponse::InternalServerError().body(format!(
                 "Unable to open file for read {}, for path: '{}'",
@@ -147,11 +172,11 @@ async fn read_from_yaml_file(
 /// # Returns
 ///
 /// Returns an `HttpResponse` representing the response to be sent back to the client.
-async fn convert_file_content_to_http_response(
+async fn get_http_response_from_incoming_request(
     result: IncomingRequest,
     req: &HttpRequest,
     path: &str,
-    key: &String,
+    route: &String,
 ) -> HttpResponse {
     if let Some(method) = result.method {
         if let Some(method) = method.as_str() {
@@ -189,7 +214,7 @@ async fn convert_file_content_to_http_response(
     if !contains_all_headers {
         return HttpResponse::NotImplemented().body(format!(
             "The request for URL {} is missing required headers: '{:?}'. The request had {:?} headers only",
-            key, required_headers, incoming_headers
+            route, required_headers, incoming_headers
         ));
     }
 

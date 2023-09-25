@@ -1,11 +1,15 @@
 use std::{collections::HashMap, sync::Mutex};
 
+use crate::cache::Cache;
+
 /// Represents the application state containing configuration mappings and the server port.
 pub struct AppState {
     /// A thread-safe container for storing route-to-configuration mappings.
     pub config_map: Mutex<HashMap<String, RequestHandlingConfig>>,
     /// The port on which the server will run.
     pub port: u16,
+
+    pub cache: Mutex<Cache>,
 }
 
 impl AppState {
@@ -19,10 +23,15 @@ impl AppState {
     /// # Returns
     ///
     /// Returns a new `AppState` instance with the provided configurations.
-    pub fn new(file_map: HashMap<String, RequestHandlingConfig>, port: Option<u16>) -> Self {
+    pub fn new(
+        file_map: HashMap<String, RequestHandlingConfig>,
+        port: Option<u16>,
+        capacity: usize,
+    ) -> Self {
         Self {
             config_map: Mutex::new(file_map),
             port: port.unwrap_or(8080),
+            cache: Mutex::new(Cache::new(capacity)),
         }
     }
 }
