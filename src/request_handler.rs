@@ -42,7 +42,7 @@ pub async fn default_request_handler(req: HttpRequest, state: Data<AppState>) ->
 
                 let cached_data = state.cache.lock().unwrap().get(route.to_string());
                 if let Some(incoming_request) = cached_data {
-                    info!("Cached value exists for rout {}", route);
+                    info!("Cached value exists for route {}", route);
                     return get_http_response_from_incoming_request(
                         incoming_request,
                         &req,
