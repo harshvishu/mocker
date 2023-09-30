@@ -1,5 +1,5 @@
 use crate::app_state::{AppState, RequestHandlingConfig, ResponseFileType};
-use crate::file_reader::{self, read_json_file, read_swagger_file, read_yaml_file};
+use crate::file_reader::{self, read_json_file, read_yaml_file};
 use crate::request::RouteConfiguration;
 use crate::rex::generate_regex_from_route;
 use actix_web::http::Method;
@@ -166,7 +166,7 @@ async fn read_from_yaml_file(
 ///
 /// # Arguments
 ///
-/// * `result` - An `IncomingRequest` containing the request configuration.
+/// * `result` - An `RouteConfiguration` containing the request configuration.
 /// * `req` - An `HttpRequest` object representing the incoming request.
 /// * `path` - A string representing the request path.
 /// * `key` - A reference to the key associated with the configuration.
@@ -301,7 +301,7 @@ pub fn create_route_map(search_path: Option<String>) -> HashMap<String, RequestH
 ///
 /// # Arguments
 ///
-/// * `result` - An `IncomingRequest` containing the request configuration.
+/// * `result` - An `RouteConfiguration` containing the request configuration.
 /// * `path` - A `PathBuf` representing the path to the JSON file.
 /// * `map` - A mutable reference to the route map (`HashMap`).
 fn insert_json_request_into_map(
@@ -325,7 +325,7 @@ fn insert_json_request_into_map(
 ///
 /// # Arguments
 ///
-/// * `result` - An `IncomingRequest` containing the request configuration.
+/// * `result` - An `RouteConfiguration` containing the request configuration.
 /// * `path` - A `PathBuf` representing the path to the YAML file.
 /// * `map` - A mutable reference to the route map (`HashMap`).
 fn insert_yaml_request_into_map(
@@ -344,47 +344,3 @@ fn insert_yaml_request_into_map(
         None => warn!("Error reading YAML file"),
     }
 }
-
-/*
-
-/// Reads a Swagger file and converts it into an `HttpResponse`.
-///
-/// # Arguments
-///
-/// * `file_name` - A reference to the name of the Swagger file to be read.
-/// * `req` - An `HttpRequest` object representing the incoming request.
-/// * `path` - A string representing the request path.
-/// * `key` - A reference to the key associated with the configuration.
-///
-/// # Returns
-///
-/// Returns an `HttpResponse` representing the response to be sent back to the client.
-async fn read_from_swagger_file(
-    file_name: &String,
-    req: &HttpRequest,
-    path: &str,
-    route: &String,
-    state: Data<AppState>,
-) -> HttpResponse {
-    if let Ok(file) = File::open(file_name) {
-        if let Ok(result) = read_swagger_file(file) {
-            state
-                .cache
-                .lock()
-                .unwrap()
-                .insert(route.to_string(), result.clone());
-            get_http_response_for_incoming_request(result, req, path, route).await
-        } else {
-            HttpResponse::InternalServerError().body(format!(
-                "Unable to open file for read {}, for path: '{}'",
-                file_name, path
-            ))
-        }
-    } else {
-        HttpResponse::InternalServerError().body(format!(
-            "Unable to read file {}, for path: '{}'",
-            file_name, path
-        ))
-    }
-}
-*/

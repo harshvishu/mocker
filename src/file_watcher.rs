@@ -2,7 +2,6 @@ use crate::{app_state::AppState, request_handler};
 use actix_web::web::Data;
 use futures::{channel::mpsc::channel, SinkExt, StreamExt};
 use log::{info, warn};
-use notify::{EventKind, RecursiveMode};
 use notify_debouncer_full::{new_debouncer, notify::*, DebounceEventResult};
 use std::{path::Path, time::Duration};
 

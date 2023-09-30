@@ -1,13 +1,11 @@
-use clap::builder::Str;
 use serde_yaml::Value;
 
 use crate::request::RouteConfiguration;
-use crate::swagger::SwaggerRequest;
 use std::fs::{self, File};
 use std::io::BufReader;
 use std::path::{Path, PathBuf};
 
-/// Reads a JSON file and deserializes it into an IncomingRequest.
+/// Reads a JSON file and deserializes it into an RouteConfiguration.
 ///
 /// # Arguments
 ///
@@ -15,7 +13,7 @@ use std::path::{Path, PathBuf};
 ///
 /// # Returns
 ///
-/// Returns a `Result` containing the deserialized `IncomingRequest` if successful, or a `Box`ed `dyn std::error::Error` if an error occurs during deserialization.
+/// Returns a `Result` containing the deserialized `RouteConfiguration` if successful, or a `Box`ed `dyn std::error::Error` if an error occurs during deserialization.
 pub fn read_json_file(file: File) -> Result<RouteConfiguration, Box<dyn std::error::Error>> {
     let reader = BufReader::new(file);
     let request = serde_json::from_reader(reader)?;
@@ -35,31 +33,6 @@ pub fn read_yaml_file(file: File) -> Result<RouteConfiguration, Box<dyn std::err
     let reader = BufReader::new(file);
     let request = serde_yaml::from_reader(reader)?;
     Ok(request)
-}
-
-/// Reads a Swagger file and deserializes it into an IncomingRequest.
-///
-/// # Arguments
-///
-/// * `file` - A `File` object representing the Swagger file to be read.
-///
-/// # Returns
-///
-/// Returns a `Result` containing the deserialized `IncomingRequest` if successful, or a `Box`ed `dyn std::error::Error` if an error occurs during deserialization.
-pub fn read_swagger_file(file: File) -> Result<SwaggerRequest, Box<dyn std::error::Error>> {
-    let reader = BufReader::new(file);
-
-    let request = serde_yaml::from_reader::<BufReader<File>, Value>(reader);
-    match request {
-        Ok(value) => {
-            dbg!(value);
-            Ok(SwaggerRequest {
-                openapi: String::from(""),
-                info: None,
-            })
-        }
-        Err(e) => Err(Box::new(e)),
-    }
 }
 
 /// Reads files from a directory based on their extension.
