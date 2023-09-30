@@ -7,7 +7,7 @@ method:
 headers:
   api_token: 12e90wrhdy9231ryc0cqwac23rt0812asdas
 response:
-  delay_ms: 3
+  delay_ms: 0
   status_code: 201
   body: >
     [{"name":"Amex Card","id":"1","balance":5000},{"name":"master

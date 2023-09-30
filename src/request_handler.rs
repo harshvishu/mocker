@@ -1,6 +1,6 @@
 use crate::app_state::{AppState, RequestHandlingConfig, ResponseFileType};
-use crate::file_reader::{self, read_json_file, read_yaml_file};
-use crate::request::IncomingRequest;
+use crate::file_reader::{self, read_json_file, read_swagger_file, read_yaml_file};
+use crate::request::RouteConfiguration;
 use crate::rex::generate_regex_from_route;
 use actix_web::http::Method;
 use actix_web::rt::time::sleep;
@@ -41,10 +41,10 @@ pub async fn default_request_handler(req: HttpRequest, state: Data<AppState>) ->
                 );
 
                 let cached_data = state.cache.lock().unwrap().get(route.to_string());
-                if let Some(incoming_request) = cached_data {
+                if let Some(route_configuration) = cached_data {
                     info!("Cached value exists for route {}", route);
-                    return get_http_response_from_incoming_request(
-                        incoming_request,
+                    return get_http_response_for_incoming_request(
+                        route_configuration,
                         &req,
                         path,
                         route,
@@ -57,7 +57,9 @@ pub async fn default_request_handler(req: HttpRequest, state: Data<AppState>) ->
                     ResponseFileType::Json(file_name) => {
                         return read_from_json_file(file_name, &req, path, route, state).await;
                     }
-                    ResponseFileType::Swagger => todo!("Swagger implementation pending"),
+                    //ResponseFileType::Swagger(file_name) => {
+                    //    return read_from_swagger_file(file_name, &req, path, route, state).await;
+                    //}
                     ResponseFileType::StaticResponse => {
                         todo!("Static Response handling pending")
                     }
@@ -104,7 +106,7 @@ async fn read_from_json_file(
                 .lock()
                 .unwrap()
                 .insert(route.to_string(), result.clone());
-            get_http_response_from_incoming_request(result, req, path, route).await
+            get_http_response_for_incoming_request(result, req, path, route).await
         } else {
             HttpResponse::InternalServerError().body(format!(
                 "Unable to open file for read {}, for path: '{}'",
@@ -145,7 +147,7 @@ async fn read_from_yaml_file(
                 .lock()
                 .unwrap()
                 .insert(route.to_string(), result.clone());
-            get_http_response_from_incoming_request(result, req, path, route).await
+            get_http_response_for_incoming_request(result, req, path, route).await
         } else {
             HttpResponse::InternalServerError().body(format!(
                 "Unable to open file for read {}, for path: '{}'",
@@ -172,8 +174,8 @@ async fn read_from_yaml_file(
 /// # Returns
 ///
 /// Returns an `HttpResponse` representing the response to be sent back to the client.
-async fn get_http_response_from_incoming_request(
-    result: IncomingRequest,
+async fn get_http_response_for_incoming_request(
+    result: RouteConfiguration,
     req: &HttpRequest,
     path: &str,
     route: &String,
@@ -261,7 +263,7 @@ async fn get_http_response_from_incoming_request(
 /// # Example
 ///
 /// ```rust
-/// use crate::request_handler::create_request_map;
+/// use crate::request_handler::create_route_map;
 ///
 /// let route_map = create_route_map(Some("./config".to_string()));
 /// ```
@@ -303,7 +305,7 @@ pub fn create_route_map(search_path: Option<String>) -> HashMap<String, RequestH
 /// * `path` - A `PathBuf` representing the path to the JSON file.
 /// * `map` - A mutable reference to the route map (`HashMap`).
 fn insert_json_request_into_map(
-    result: IncomingRequest,
+    result: RouteConfiguration,
     path: PathBuf,
     map: &mut HashMap<String, RequestHandlingConfig>,
 ) {
@@ -327,7 +329,7 @@ fn insert_json_request_into_map(
 /// * `path` - A `PathBuf` representing the path to the YAML file.
 /// * `map` - A mutable reference to the route map (`HashMap`).
 fn insert_yaml_request_into_map(
-    result: IncomingRequest,
+    result: RouteConfiguration,
     path: PathBuf,
     map: &mut HashMap<String, RequestHandlingConfig>,
 ) {
@@ -342,3 +344,47 @@ fn insert_yaml_request_into_map(
         None => warn!("Error reading YAML file"),
     }
 }
+
+/*
+
+/// Reads a Swagger file and converts it into an `HttpResponse`.
+///
+/// # Arguments
+///
+/// * `file_name` - A reference to the name of the Swagger file to be read.
+/// * `req` - An `HttpRequest` object representing the incoming request.
+/// * `path` - A string representing the request path.
+/// * `key` - A reference to the key associated with the configuration.
+///
+/// # Returns
+///
+/// Returns an `HttpResponse` representing the response to be sent back to the client.
+async fn read_from_swagger_file(
+    file_name: &String,
+    req: &HttpRequest,
+    path: &str,
+    route: &String,
+    state: Data<AppState>,
+) -> HttpResponse {
+    if let Ok(file) = File::open(file_name) {
+        if let Ok(result) = read_swagger_file(file) {
+            state
+                .cache
+                .lock()
+                .unwrap()
+                .insert(route.to_string(), result.clone());
+            get_http_response_for_incoming_request(result, req, path, route).await
+        } else {
+            HttpResponse::InternalServerError().body(format!(
+                "Unable to open file for read {}, for path: '{}'",
+                file_name, path
+            ))
+        }
+    } else {
+        HttpResponse::InternalServerError().body(format!(
+            "Unable to read file {}, for path: '{}'",
+            file_name, path
+        ))
+    }
+}
+*/

@@ -35,6 +35,7 @@ mod file_watcher;
 mod request;
 mod request_handler;
 mod rex;
+mod swagger;
 
 /// Main function for the Actix Web application.
 ///

@@ -1,4 +1,8 @@
-use crate::request::IncomingRequest;
+use clap::builder::Str;
+use serde_yaml::Value;
+
+use crate::request::RouteConfiguration;
+use crate::swagger::SwaggerRequest;
 use std::fs::{self, File};
 use std::io::BufReader;
 use std::path::{Path, PathBuf};
@@ -12,13 +16,13 @@ use std::path::{Path, PathBuf};
 /// # Returns
 ///
 /// Returns a `Result` containing the deserialized `IncomingRequest` if successful, or a `Box`ed `dyn std::error::Error` if an error occurs during deserialization.
-pub fn read_json_file(file: File) -> Result<IncomingRequest, Box<dyn std::error::Error>> {
+pub fn read_json_file(file: File) -> Result<RouteConfiguration, Box<dyn std::error::Error>> {
     let reader = BufReader::new(file);
     let request = serde_json::from_reader(reader)?;
     Ok(request)
 }
 
-/// Reads a YAML file and deserializes it into an IncomingRequest.
+/// Reads a YAML file and deserializes it into an RouteConfiguration.
 ///
 /// # Arguments
 ///
@@ -26,11 +30,36 @@ pub fn read_json_file(file: File) -> Result<IncomingRequest, Box<dyn std::error:
 ///
 /// # Returns
 ///
-/// Returns a `Result` containing the deserialized `IncomingRequest` if successful, or a `Box`ed `dyn std::error::Error` if an error occurs during deserialization.
-pub fn read_yaml_file(file: File) -> Result<IncomingRequest, Box<dyn std::error::Error>> {
+/// Returns a `Result` containing the deserialized `RouteConfiguration` if successful, or a `Box`ed `dyn std::error::Error` if an error occurs during deserialization.
+pub fn read_yaml_file(file: File) -> Result<RouteConfiguration, Box<dyn std::error::Error>> {
     let reader = BufReader::new(file);
     let request = serde_yaml::from_reader(reader)?;
     Ok(request)
+}
+
+/// Reads a Swagger file and deserializes it into an IncomingRequest.
+///
+/// # Arguments
+///
+/// * `file` - A `File` object representing the Swagger file to be read.
+///
+/// # Returns
+///
+/// Returns a `Result` containing the deserialized `IncomingRequest` if successful, or a `Box`ed `dyn std::error::Error` if an error occurs during deserialization.
+pub fn read_swagger_file(file: File) -> Result<SwaggerRequest, Box<dyn std::error::Error>> {
+    let reader = BufReader::new(file);
+
+    let request = serde_yaml::from_reader::<BufReader<File>, Value>(reader);
+    match request {
+        Ok(value) => {
+            dbg!(value);
+            Ok(SwaggerRequest {
+                openapi: String::from(""),
+                info: None,
+            })
+        }
+        Err(e) => Err(Box::new(e)),
+    }
 }
 
 /// Reads files from a directory based on their extension.
