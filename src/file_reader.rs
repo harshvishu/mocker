@@ -1,9 +1,11 @@
-use crate::request::IncomingRequest;
+use serde_yaml::Value;
+
+use crate::request::RouteConfiguration;
 use std::fs::{self, File};
 use std::io::BufReader;
 use std::path::{Path, PathBuf};
 
-/// Reads a JSON file and deserializes it into an IncomingRequest.
+/// Reads a JSON file and deserializes it into an RouteConfiguration.
 ///
 /// # Arguments
 ///
@@ -11,14 +13,14 @@ use std::path::{Path, PathBuf};
 ///
 /// # Returns
 ///
-/// Returns a `Result` containing the deserialized `IncomingRequest` if successful, or a `Box`ed `dyn std::error::Error` if an error occurs during deserialization.
-pub fn read_json_file(file: File) -> Result<IncomingRequest, Box<dyn std::error::Error>> {
+/// Returns a `Result` containing the deserialized `RouteConfiguration` if successful, or a `Box`ed `dyn std::error::Error` if an error occurs during deserialization.
+pub fn read_json_file(file: File) -> Result<RouteConfiguration, Box<dyn std::error::Error>> {
     let reader = BufReader::new(file);
     let request = serde_json::from_reader(reader)?;
     Ok(request)
 }
 
-/// Reads a YAML file and deserializes it into an IncomingRequest.
+/// Reads a YAML file and deserializes it into an RouteConfiguration.
 ///
 /// # Arguments
 ///
@@ -26,8 +28,8 @@ pub fn read_json_file(file: File) -> Result<IncomingRequest, Box<dyn std::error:
 ///
 /// # Returns
 ///
-/// Returns a `Result` containing the deserialized `IncomingRequest` if successful, or a `Box`ed `dyn std::error::Error` if an error occurs during deserialization.
-pub fn read_yaml_file(file: File) -> Result<IncomingRequest, Box<dyn std::error::Error>> {
+/// Returns a `Result` containing the deserialized `RouteConfiguration` if successful, or a `Box`ed `dyn std::error::Error` if an error occurs during deserialization.
+pub fn read_yaml_file(file: File) -> Result<RouteConfiguration, Box<dyn std::error::Error>> {
     let reader = BufReader::new(file);
     let request = serde_yaml::from_reader(reader)?;
     Ok(request)

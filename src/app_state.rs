@@ -62,7 +62,7 @@ impl RequestHandlingConfig {
 #[derive(Debug, Clone)]
 pub enum ResponseFileType {
     /// Represents a Swagger response.
-    Swagger,
+    //Swagger(String),
     /// Represents a JSON response with the provided file name.
     Json(String),
     /// Represents a YAML response with the provided file name.

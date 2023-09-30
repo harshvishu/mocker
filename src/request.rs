@@ -3,7 +3,7 @@ use serde_json::Value;
 use std::collections::HashMap;
 
 #[derive(Debug, Deserialize, Clone)]
-pub struct IncomingRequest {
+pub struct RouteConfiguration {
     pub name: Option<String>,
     pub method: Option<Value>,
     pub url: String,

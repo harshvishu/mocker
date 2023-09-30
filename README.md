@@ -45,3 +45,6 @@ Within the JSON body, use the `"response"` parameter to specify the following va
 - `"status_code"`: Set the HTTP response code.
 - `"body"`: Provide the JSON or raw string you want to be returned in the HTTP response.
 - `"delay_ms"`: Add a delay to the response in milliseconds.
+
+### Workflow
+![Workflow](moker_workflow.png)
