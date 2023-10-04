@@ -48,3 +48,6 @@ Within the JSON body, use the `"response"` parameter to specify the following va
 
 ### Workflow
 ![Workflow](moker_workflow.png)
+
+### Build Status 
+[![Continuous integration](https://github.com/harshvishu/mocker/actions/workflows/build-and-release-linux.yml/badge.svg)](https://github.com/harshvishu/mocker/actions/workflows/build-and-release-linux.yml)
