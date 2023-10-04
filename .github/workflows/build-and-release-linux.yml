@@ -45,7 +45,6 @@ jobs:
       matrix:
         target:
           - x86_64-apple-darwin
-          - i686-apple-darwin
           - aarch64-apple-darwin
     steps:
       - uses: actions/checkout@v2
@@ -59,34 +58,6 @@ jobs:
           use-cross: true
           command: build
           args: --release --target=${{ matrix.target }}
-      - run: ls -ltR 
-      - uses: actions/upload-artifact@v3
-        with:
-          name: "my-artifact-${{ matrix.target }}"
-          path: "target/${{ matrix.target }}/release/moker"
-          if-no-files-found: error # 'warn' or 'ignore' are also available, defaults to `warn`
-
-  build:
-    name: MacOS-Build
-    runs-on: macos-latest 
-    strategy:
-      matrix:
-        target:
-          - x86_64-apple-darwin
-          - aarch64-apple-darwin
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          target: ${{ matrix.target }}
-          override: true
-      - uses: actions-rs/cargo@v1
-        with:
-          use-cross: true
-          command: build
-          args: --release --target=${{ matrix.target }}
-      - run: pwd 
       - run: ls -ltR 
       - uses: actions/upload-artifact@v3
         with:
