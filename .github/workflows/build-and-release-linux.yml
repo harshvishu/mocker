@@ -3,7 +3,7 @@ on: [push]
 name: Continuous integration
 
 jobs:
-  build:
+  build_linux:
     name: Linux-Build
     runs-on: ubuntu-latest
     strategy:
@@ -38,7 +38,7 @@ jobs:
           path: "target/${{ matrix.target }}/release"
           if-no-files-found: error # 'warn' or 'ignore' are also available, defaults to `warn`
 
-  build:
+  build_macos:
     name: MacOS-Build
     runs-on: macos-latest 
     strategy:
