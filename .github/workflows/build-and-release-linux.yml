@@ -35,7 +35,7 @@ jobs:
       - uses: actions/upload-artifact@v3
         with:
           name: "my-artifact-${{ matrix.target }}"
-          path: "target/${{ matrix.target }}/release"
+          path: "target/${{ matrix.target }}/release/moker"
           if-no-files-found: error # 'warn' or 'ignore' are also available, defaults to `warn`
 
   build_macos:
