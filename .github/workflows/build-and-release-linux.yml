@@ -2,93 +2,285 @@ on: [push]
 
 name: Continuous integration
 
+env:
+  CRATE_NAME: moker
+  GITHUB_TOKEN: ${{ github.token }}
+  RUST_BACKTRACE: 1
+
 jobs:
-  build_linux:
-    name: Linux-Build
-    runs-on: ubuntu-latest
+  test_and_release:
+    name: ${{ matrix.platform.os_name }} with rust ${{ matrix.toolchain }}
+    runs-on: ${{ matrix.platform.os }}
     strategy:
+      fail-fast: false
       matrix:
-        target:
-          - x86_64-unknown-linux-gnu
-          - i686-unknown-linux-gnu
-          - aarch64-unknown-linux-gnu
-          - armv7-unknown-linux-gnueabihf
-          - armv7-unknown-linux-musleabihf
-          - arm-unknown-linux-gnueabihf
-          - arm-unknown-linux-musleabi
-          - powerpc-unknown-linux-gnu
-          - powerpc64-unknown-linux-gnu
-          - powerpc64le-unknown-linux-gnu
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          target: ${{ matrix.target }}
-          override: true
-      - uses: actions-rs/cargo@v1
-        with:
-          use-cross: true
-          command: build
-          args: --release --target=${{ matrix.target }}
-      - run: ls -ltR 
-      - uses: actions/upload-artifact@v3
-        with:
-          name: "my-artifact-${{ matrix.target }}"
-          path: "target/${{ matrix.target }}/release/moker"
-          if-no-files-found: error # 'warn' or 'ignore' are also available, defaults to `warn`
+        platform:
+          # Platforms that don't work:
+          #
+          # - sparc64-unknown-linux-gnu - cannot compile openssl-sys
+          # - x86_64-unknown-illumos - weird error compiling openssl - "bin/sh: 1: granlib: not found"
 
-  build_macos:
-    name: MacOS-Build
-    runs-on: macos-latest 
-    strategy:
-      matrix:
-        target:
-          - x86_64-apple-darwin
-          - aarch64-apple-darwin
+          - os_name: FreeBSD-x86_64
+            os: ubuntu-20.04
+            target: x86_64-unknown-freebsd
+            bin: moker
+            name: moker-FreeBSD-x86_64.tar.gz
+            skip_tests: true
+          - os_name: Linux-x86_64
+            os: ubuntu-20.04
+            target: x86_64-unknown-linux-musl
+            bin: moker
+            name: moker-Linux-x86_64-musl.tar.gz
+          - os_name: Linux-aarch64
+            os: ubuntu-20.04
+            target: aarch64-unknown-linux-musl
+            bin: moker
+            name: moker-Linux-aarch64-musl.tar.gz
+          - os_name: Linux-arm
+            os: ubuntu-20.04
+            target: arm-unknown-linux-musleabi
+            bin: moker
+            name: moker-Linux-arm-musl.tar.gz
+          - os_name: Linux-i686
+            os: ubuntu-20.04
+            target: i686-unknown-linux-musl
+            bin: moker
+            name: moker-Linux-i686-musl.tar.gz
+            skip_tests: true
+          - os_name: Linux-mips
+            os: ubuntu-20.04
+            target: mips-unknown-linux-musl
+            bin: moker
+            name: moker-Linux-mips.tar.gz
+          - os_name: Linux-mipsel
+            os: ubuntu-20.04
+            target: mipsel-unknown-linux-musl
+            bin: moker
+            name: moker-Linux-mipsel.tar.gz
+          - os_name: Linux-mips64
+            os: ubuntu-20.04
+            target: mips64-unknown-linux-muslabi64
+            bin: moker
+            name: moker-Linux-mips64.tar.gz
+            skip_tests: true
+          - os_name: Linux-mips64el
+            os: ubuntu-20.04
+            target: mips64el-unknown-linux-muslabi64
+            bin: moker
+            name: moker-Linux-mips64el.tar.gz
+            skip_tests: true
+          - os_name: Linux-powerpc
+            os: ubuntu-20.04
+            target: powerpc-unknown-linux-gnu
+            bin: moker
+            name: moker-Linux-powerpc-gnu.tar.gz
+            skip_tests: true
+          - os_name: Linux-powerpc64
+            os: ubuntu-20.04
+            target: powerpc64-unknown-linux-gnu
+            bin: moker
+            name: moker-Linux-powerpc64-gnu.tar.gz
+            skip_tests: true
+          - os_name: Linux-powerpc64le
+            os: ubuntu-20.04
+            target: powerpc64le-unknown-linux-gnu
+            bin: moker
+            name: moker-Linux-powerpc64le.tar.gz
+            skip_tests: true
+          - os_name: Linux-riscv64
+            os: ubuntu-20.04
+            target: riscv64gc-unknown-linux-gnu
+            bin: moker
+            name: moker-Linux-riscv64gc-gnu.tar.gz
+          - os_name: Linux-s390x
+            os: ubuntu-20.04
+            target: s390x-unknown-linux-gnu
+            bin: moker
+            name: moker-Linux-s390x-gnu.tar.gz
+            skip_tests: true
+          - os_name: NetBSD-x86_64
+            os: ubuntu-20.04
+            target: x86_64-unknown-netbsd
+            bin: moker
+            name: moker-NetBSD-x86_64.tar.gz
+            skip_tests: true
+          - os_name: Windows-aarch64
+            os: windows-latest
+            target: aarch64-pc-windows-msvc
+            bin: moker.exe
+            name: moker-Windows-aarch64.zip
+            skip_tests: true
+          - os_name: Windows-i686
+            os: windows-latest
+            target: i686-pc-windows-msvc
+            bin: moker.exe
+            name: moker-Windows-i686.zip
+            skip_tests: true
+          - os_name: Windows-x86_64
+            os: windows-latest
+            target: x86_64-pc-windows-msvc
+            bin: moker.exe
+            name: moker-Windows-x86_64.zip
+          - os_name: macOS-x86_64
+            os: macOS-latest
+            target: x86_64-apple-darwin
+            bin: moker
+            name: moker-Darwin-x86_64.tar.gz
+          - os_name: macOS-aarch64
+            os: macOS-latest
+            target: aarch64-apple-darwin
+            bin: moker
+            name: moker-Darwin-aarch64.tar.gz
+            skip_tests: true
+        toolchain:
+          - stable
+          - beta
+          - nightly
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
+      - uses: actions/checkout@v3
+      - name: Cache cargo & target directories
+        uses: Swatinem/rust-cache@v2
+      - name: Install musl-tools on Linux
+        run: sudo apt-get update --yes && sudo apt-get install --yes musl-tools
+        if: contains(matrix.platform.name, 'musl')
+      - name: Build binary
+        uses: houseabsolute/actions-rust-cross@v0
         with:
-          toolchain: stable
-          target: ${{ matrix.target }}
-          override: true
-      - uses: actions-rs/cargo@v1
+          command: "build"
+          target: ${{ matrix.platform.target }}
+          toolchain: ${{ matrix.toolchain }}
+          args: "--locked --release"
+          strip: true
+      - name: Run tests
+        uses: houseabsolute/actions-rust-cross@v0
         with:
-          use-cross: true
-          command: build
-          args: --release --target=${{ matrix.target }}
-      - run: ls -ltR 
-      - uses: actions/upload-artifact@v3
+          command: "test"
+          target: ${{ matrix.platform.target }}
+          toolchain: ${{ matrix.toolchain }}
+          args: "--locked --release"
+        if: ${{ !matrix.platform.skip_tests }}
+      - name: Package as archive
+        shell: bash
+        run: |
+          cd target/${{ matrix.platform.target }}/release
+          if [[ "${{ matrix.platform.os }}" == "windows-latest" ]]; then
+            7z a ../../../${{ matrix.platform.name }} ${{ matrix.platform.bin }}
+          else
+            tar czvf ../../../${{ matrix.platform.name }} ${{ matrix.platform.bin }}
+          fi
+          cd -
+        if: |
+          matrix.toolchain == 'stable' &&
+          ( startsWith( github.ref, 'refs/tags/v' ) ||
+            github.ref == 'refs/tags/test-release' )
+      - name: Publish release artifacts
+        uses: actions/upload-artifact@v3
         with:
-          name: "my-artifact-${{ matrix.target }}"
-          path: "target/${{ matrix.target }}/release/moker"
-          if-no-files-found: error # 'warn' or 'ignore' are also available, defaults to `warn`
+          name: moker-${{ matrix.platform.os_name }}
+          path: "moker-*"
+        if: matrix.toolchain == 'stable' && github.ref == 'refs/tags/test-release'
+      - name: Generate SHA-256
+        run: shasum -a 256 ${{ matrix.platform.name }}
+        if: |
+          matrix.toolchain == 'stable' &&
+          matrix.platform.os == 'macOS-latest' &&
+          ( startsWith( github.ref, 'refs/tags/v' ) ||
+            github.ref == 'refs/tags/test-release' )
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v1
+        with:
+          draft: true
+          files: "moker-*"
+          body_path: Changes.md
+            #if: matrix.toolchain == 'stable' && startsWith( github.ref, 'refs/tags/v' )
 
-  build_windows:
-    name: Windows-Build
-    runs-on: windows-latest 
-    strategy:
-      matrix:
-        target:
-          - x86_64-pc-windows-msvc
-            #- i686-pc-windows-gnu
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          target: ${{ matrix.target }}
-          override: true
-      - uses: actions-rs/cargo@v1
-        with:
-          use-cross: false 
-          command: build
-          args: --release --target=${{ matrix.target }}
-      - run: ls -ltR 
-      - uses: actions/upload-artifact@v3
-        with:
-          name: "my-artifact-${{ matrix.target }}"
-          path: "target/${{ matrix.target }}/release/moker"
-          if-no-files-found: error # 'warn' or 'ignore' are also available, defaults to `warn`
-
+          #jobs:
+          #  build_linux:
+          #    name: Linux-Build
+          #    runs-on: ubuntu-latest
+          #    strategy:
+          #      matrix:
+          #        target:
+          #          - x86_64-unknown-linux-gnu
+          #          - i686-unknown-linux-gnu
+          #          - aarch64-unknown-linux-gnu
+          #          - armv7-unknown-linux-gnueabihf
+          #          - armv7-unknown-linux-musleabihf
+          #          - arm-unknown-linux-gnueabihf
+          #          - arm-unknown-linux-musleabi
+          #          - powerpc-unknown-linux-gnu
+          #          - powerpc64-unknown-linux-gnu
+          #          - powerpc64le-unknown-linux-gnu
+          #    steps:
+          #      - uses: actions/checkout@v2
+          #      - uses: actions-rs/toolchain@v1
+          #        with:
+          #          toolchain: stable
+          #          target: ${{ matrix.target }}
+          #          override: true
+          #      - uses: actions-rs/cargo@v1
+          #        with:
+          #          use-cross: true
+          #          command: build
+          #          args: --release --target=${{ matrix.target }}
+          #      - run: ls -ltR 
+          #      - uses: actions/upload-artifact@v3
+          #        with:
+          #          name: "my-artifact-${{ matrix.target }}"
+          #          path: "target/${{ matrix.target }}/release/moker"
+          #          if-no-files-found: error # 'warn' or 'ignore' are also available, defaults to `warn`
+          #
+          #  build_macos:
+          #    name: MacOS-Build
+          #    runs-on: macos-latest 
+          #    strategy:
+          #      matrix:
+          #        target:
+          #          - x86_64-apple-darwin
+          #          - aarch64-apple-darwin
+          #    steps:
+          #      - uses: actions/checkout@v2
+          #      - uses: actions-rs/toolchain@v1
+          #        with:
+          #          toolchain: stable
+          #          target: ${{ matrix.target }}
+          #          override: true
+          #      - uses: actions-rs/cargo@v1
+          #        with:
+          #          use-cross: true
+          #          command: build
+          #          args: --release --target=${{ matrix.target }}
+          #      - run: ls -ltR 
+          #      - uses: actions/upload-artifact@v3
+          #        with:
+          #          name: "my-artifact-${{ matrix.target }}"
+          #          path: "target/${{ matrix.target }}/release/moker"
+          #          if-no-files-found: error # 'warn' or 'ignore' are also available, defaults to `warn`
+          #
+          #  build_windows:
+          #    name: Windows-Build
+          #    runs-on: windows-latest 
+          #    strategy:
+          #      matrix:
+          #        target:
+          #          - x86_64-pc-windows-msvc
+          #            #- i686-pc-windows-gnu
+          #    steps:
+          #      - uses: actions/checkout@v2
+          #      - uses: actions-rs/toolchain@v1
+          #        with:
+          #          toolchain: stable
+          #          target: ${{ matrix.target }}
+          #          override: true
+          #      - uses: actions-rs/cargo@v1
+          #        with:
+          #          use-cross: false 
+          #          command: build
+          #          args: --release --target=${{ matrix.target }}
+          #      - run: ls -ltR 
+          #      - uses: actions/upload-artifact@v3
+          #        with:
+          #          name: "my-artifact-${{ matrix.target }}"
+          #          path: "target/${{ matrix.target }}/release/moker"
+          #          if-no-files-found: error # 'warn' or 'ignore' are also available, defaults to `warn`
+          #
