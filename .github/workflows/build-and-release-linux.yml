@@ -65,3 +65,30 @@ jobs:
           path: "target/${{ matrix.target }}/release/moker"
           if-no-files-found: error # 'warn' or 'ignore' are also available, defaults to `warn`
 
+  build_windows:
+    name: Windows-Build
+    runs-on: windows-latest 
+    strategy:
+      matrix:
+        target:
+          - x86_64-pc-windows-gnu
+          - i686-pc-windows-gnu
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: ${{ matrix.target }}
+          override: true
+      - uses: actions-rs/cargo@v1
+        with:
+          use-cross: true
+          command: build
+          args: --release --target=${{ matrix.target }}
+      - run: ls -ltR 
+      - uses: actions/upload-artifact@v3
+        with:
+          name: "my-artifact-${{ matrix.target }}"
+          path: "target/${{ matrix.target }}/release/moker"
+          if-no-files-found: error # 'warn' or 'ignore' are also available, defaults to `warn`
+
